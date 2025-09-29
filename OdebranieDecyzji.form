@@ -1,0 +1,84 @@
+{
+  "components": [
+    {
+      "label": "Numer albumu",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1mun1uy",
+        "columns": null
+      },
+      "id": "Field_122n0gg",
+      "key": "podanie.nrAlbumu",
+      "validate": {
+        "required": true
+      },
+      "disabled": false,
+      "readonly": true
+    },
+    {
+      "label": "Punkty ECTS",
+      "type": "number",
+      "layout": {
+        "row": "Row_0tsaosh",
+        "columns": null
+      },
+      "id": "Field_0th4w3m",
+      "key": "podanie.punktyECTS",
+      "validate": {
+        "required": true,
+        "min": "0",
+        "max": 30
+      },
+      "decimalDigits": 0,
+      "increment": "1",
+      "readonly": true,
+      "disabled": false
+    },
+    {
+      "label": "Uzasadnienie",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0knzifz",
+        "columns": null
+      },
+      "id": "Field_03qi06i",
+      "key": "podanie.uzasadnienie",
+      "disabled": false,
+      "readonly": true
+    },
+    {
+      "label": "Czy decyzja pozytywna?",
+      "type": "radio",
+      "layout": {
+        "row": "Row_17inpzy",
+        "columns": null
+      },
+      "id": "Field_0yi6gfc",
+      "key": "decyzja.czyPozytywna",
+      "disabled": false,
+      "readonly": true,
+      "valuesExpression": "=[\n {\n  \"label\": \"Tak\",\n  \"value\": true\n },\n {\n  \"label\": \"Nie\",\n  \"value\": false\n }\n]"
+    },
+    {
+      "label": "Uzasadnienie decyzji",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_1ci6cqd",
+        "columns": null
+      },
+      "id": "Field_0ee115k",
+      "key": "decyzja.uzasadnienie",
+      "disabled": false,
+      "readonly": true
+    }
+  ],
+  "type": "default",
+  "id": "odebranie-decyzji",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.7.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.39.0"
+  },
+  "schemaVersion": 19
+}

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_127387j" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.39.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0">
+  <bpmn:collaboration id="Collaboration_1htt0i8">
+    <bpmn:participant id="Participant_1y84zcb" name="Zaliczenie Semestru" processRef="Process_10mkoes" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_10mkoes" name="zaliczenie-semestru" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1abvns1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_0ithz23" name="Złożenie Podania">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="zlozenie-podania" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1abvns1</bpmn:incoming>
+      <bpmn:outgoing>Flow_1crqjsh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_czy_zaliczyc_semestr" name="czy zaliczyć semestr?" default="zaliczyc_semestr_tak">
+      <bpmn:incoming>Flow_1crqjsh</bpmn:incoming>
+      <bpmn:outgoing>zaliczyc_semestr_tak</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1qutq4p</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:scriptTask id="Activity_0pyim4q" name="Decyzja pozytywna">
+      <bpmn:extensionElements>
+        <zeebe:script expression="={czyPozytywna: true, &#10; uzasadnienie: &#34;Wystarczająco dużo punktów ECTS&#34;}" resultVariable="decyzja" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>zaliczyc_semestr_tak</bpmn:incoming>
+      <bpmn:outgoing>Flow_17tzgjs</bpmn:outgoing>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_1abvns1" sourceRef="StartEvent_1" targetRef="Activity_0ithz23" />
+    <bpmn:sequenceFlow id="Flow_1crqjsh" sourceRef="Activity_0ithz23" targetRef="Gateway_czy_zaliczyc_semestr" />
+    <bpmn:sequenceFlow id="zaliczyc_semestr_tak" name="Tak" sourceRef="Gateway_czy_zaliczyc_semestr" targetRef="Activity_0pyim4q">
+      <bpmn:extensionElements />
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1qutq4p" name="Nie" sourceRef="Gateway_czy_zaliczyc_semestr" targetRef="Activity_0bv4bxz">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=podanie.punktyECTS&lt;18</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:scriptTask id="Activity_0bv4bxz" name="Decyzja negatywna">
+      <bpmn:extensionElements>
+        <zeebe:script expression="={czyPozytywna: false, &#10; uzasadnienie: &#34;Za mało punktów ECTS&#34;}" resultVariable="decyzja" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1qutq4p</bpmn:incoming>
+      <bpmn:outgoing>Flow_0yacfnc</bpmn:outgoing>
+    </bpmn:scriptTask>
+    <bpmn:exclusiveGateway id="Gateway_0mym9bs">
+      <bpmn:incoming>Flow_0yacfnc</bpmn:incoming>
+      <bpmn:incoming>Flow_17tzgjs</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wikpjn</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0yacfnc" sourceRef="Activity_0bv4bxz" targetRef="Gateway_0mym9bs" />
+    <bpmn:sequenceFlow id="Flow_17tzgjs" sourceRef="Activity_0pyim4q" targetRef="Gateway_0mym9bs" />
+    <bpmn:userTask id="Activity_07voo3u" name="Odebranie decyzji">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="odebranie-decyzji" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1wikpjn</bpmn:incoming>
+      <bpmn:outgoing>Flow_1oicprh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1wikpjn" sourceRef="Gateway_0mym9bs" targetRef="Activity_07voo3u" />
+    <bpmn:endEvent id="Event_0xjqsya">
+      <bpmn:incoming>Flow_1oicprh</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1oicprh" sourceRef="Activity_07voo3u" targetRef="Event_0xjqsya" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1htt0i8">
+      <bpmndi:BPMNShape id="Participant_1y84zcb_di" bpmnElement="Participant_1y84zcb" isHorizontal="true">
+        <dc:Bounds x="120" y="40" width="910" height="300" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="170" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1uqhrqc_di" bpmnElement="Activity_0ithz23">
+        <dc:Bounds x="258" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_11shhke_di" bpmnElement="Gateway_czy_zaliczyc_semestr" isMarkerVisible="true">
+        <dc:Bounds x="413" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="408" y="118" width="59" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0zbz36q_di" bpmnElement="Activity_0pyim4q">
+        <dc:Bounds x="518" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0lxu16g_di" bpmnElement="Activity_0bv4bxz">
+        <dc:Bounds x="520" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0mym9bs_di" bpmnElement="Gateway_0mym9bs" isMarkerVisible="true">
+        <dc:Bounds x="675" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0e86b92_di" bpmnElement="Activity_07voo3u">
+        <dc:Bounds x="790" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0xjqsya_di" bpmnElement="Event_0xjqsya">
+        <dc:Bounds x="962" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1abvns1_di" bpmnElement="Flow_1abvns1">
+        <di:waypoint x="206" y="180" />
+        <di:waypoint x="258" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1crqjsh_di" bpmnElement="Flow_1crqjsh">
+        <di:waypoint x="358" y="180" />
+        <di:waypoint x="413" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hz5mik_di" bpmnElement="zaliczyc_semestr_tak">
+        <di:waypoint x="463" y="180" />
+        <di:waypoint x="518" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="482" y="162" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qutq4p_di" bpmnElement="Flow_1qutq4p">
+        <di:waypoint x="438" y="205" />
+        <di:waypoint x="438" y="290" />
+        <di:waypoint x="520" y="290" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="445" y="245" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_17tzgjs_di" bpmnElement="Flow_17tzgjs">
+        <di:waypoint x="618" y="180" />
+        <di:waypoint x="675" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0yacfnc_di" bpmnElement="Flow_0yacfnc">
+        <di:waypoint x="620" y="290" />
+        <di:waypoint x="700" y="290" />
+        <di:waypoint x="700" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wikpjn_di" bpmnElement="Flow_1wikpjn">
+        <di:waypoint x="725" y="180" />
+        <di:waypoint x="790" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1oicprh_di" bpmnElement="Flow_1oicprh">
+        <di:waypoint x="890" y="180" />
+        <di:waypoint x="962" y="180" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
