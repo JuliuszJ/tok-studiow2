@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1soqz33" name="DRD" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.39.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0">
+  <decision id="ocena-podania" name="Ocena Podania">
+    <decisionTable id="DecisionTable_1yq413z">
+      <input id="Input_1" label="Punkty ECTS">
+        <inputExpression id="InputExpression_1" typeRef="number">
+          <text>podanie.punktyECTS</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_0llx2ez" label="Uzasadnienie podania">
+        <inputExpression id="LiteralExpression_1bdi6p0" typeRef="number">
+          <text>string string length(podanie.uzasadnienie)</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="Czy pozytywna? " name="czyPozytywna" typeRef="boolean" />
+      <output id="OutputClause_1vtt8ls" label="Uzasadnienie decyzji" name="uzasadnienie" typeRef="string" />
+      <rule id="DecisionRule_10du5v1">
+        <inputEntry id="UnaryTests_09blo7o">
+          <text>&gt;= 18</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_02aivpb">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_03f42k9">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0v6k7bt">
+          <text>"Wystarczająco dużo punktów ECTS"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0z6qlus">
+        <inputEntry id="UnaryTests_11ppw5k">
+          <text>&lt; 15</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1of09qs">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0hpo115">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1hzi67j">
+          <text>"Za mało punktów ECTS"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1d4wyzc">
+        <inputEntry id="UnaryTests_0vihuyz">
+          <text>[15..18[</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1heurf8">
+          <text>&gt;= 10</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0z9rf5t">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1hh2p8d">
+          <text>"Mało punktów ECTS ale dobre uzasadnienie"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_09zfeti">
+        <inputEntry id="UnaryTests_11ivvl0">
+          <text>[15..18[</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1wtnvca">
+          <text>&lt; 10</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0gc7nwl">
+          <text>null</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0axeoe7">
+          <text>"Za słabe uzasadnienie, brak decyzji"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="ocena-podania">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
