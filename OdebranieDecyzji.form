@@ -56,8 +56,11 @@
       "id": "Field_0yi6gfc",
       "key": "decyzja.czyPozytywna",
       "disabled": false,
-      "readonly": true,
-      "valuesExpression": "=[\n {\n  \"label\": \"Tak\",\n  \"value\": true\n },\n {\n  \"label\": \"Nie\",\n  \"value\": false\n }\n]"
+      "readonly": "=decyzjaRO",
+      "valuesExpression": "=[\n {\n  \"label\": \"Tak\",\n  \"value\": true\n },\n {\n  \"label\": \"Nie\",\n  \"value\": false\n }\n]",
+      "validate": {
+        "required": true
+      }
     },
     {
       "label": "Uzasadnienie decyzji",
@@ -69,7 +72,10 @@
       "id": "Field_0ee115k",
       "key": "decyzja.uzasadnienie",
       "disabled": false,
-      "readonly": true
+      "readonly": "=decyzjaRO",
+      "validate": {
+        "required": true
+      }
     }
   ],
   "type": "default",
