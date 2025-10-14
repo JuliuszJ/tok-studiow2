@@ -33,7 +33,7 @@
       <bpmn:extensionElements>
         <zeebe:calledDecision decisionId="ocena-podania" resultVariable="wynikDecyzji" />
         <zeebe:ioMapping>
-          <zeebe:output source="={czyPozytywna: uzasadnienie.czyPozytywna, &#10; uzasadnienie: uzasadnienie.uzasadnienie}" target="decyzja" />
+          <zeebe:output source="={czyPozytywna: wynikDecyzji.czyPozytywna, &#10; uzasadnienie: wynikDecyzji.uzasadnienie}" target="decyzja" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1crqjsh</bpmn:incoming>
@@ -93,12 +93,12 @@
         <dc:Bounds x="151" y="45" width="1108" height="300" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Lane_0p09tyq_di" bpmnElement="Lane_0p09tyq" isHorizontal="true">
-        <dc:Bounds x="181" y="45" width="1078" height="150" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_0tw2rf4_di" bpmnElement="Lane_0tw2rf4" isHorizontal="true">
         <dc:Bounds x="181" y="195" width="1078" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0p09tyq_di" bpmnElement="Lane_0p09tyq" isHorizontal="true">
+        <dc:Bounds x="181" y="45" width="1078" height="150" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
