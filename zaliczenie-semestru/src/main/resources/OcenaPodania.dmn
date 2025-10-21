@@ -9,7 +9,7 @@
       </input>
       <input id="InputClause_0llx2ez" label="Uzasadnienie podania">
         <inputExpression id="LiteralExpression_1bdi6p0" typeRef="number">
-          <text>string string length(podanie.uzasadnienie)</text>
+          <text>string length(podanie.uzasadnienie)</text>
         </inputExpression>
       </input>
       <output id="Output_1" label="Czy pozytywna? " name="czyPozytywna" typeRef="boolean" />

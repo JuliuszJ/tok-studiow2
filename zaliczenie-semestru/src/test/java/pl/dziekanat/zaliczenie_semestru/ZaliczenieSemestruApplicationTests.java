@@ -28,7 +28,7 @@ class ZaliczenieSemestruApplicationTests {
 
     @BeforeEach
     void initProcess(){
-        CamundaAssert.setAssertionTimeout(Duration.ofMinutes(1));
+        CamundaAssert.setAssertionTimeout(Duration.ofSeconds(10));
         processInstance = client
                 .newCreateInstanceCommand()
                 .bpmnProcessId("zaliczenie-semestru-process")
@@ -45,21 +45,75 @@ class ZaliczenieSemestruApplicationTests {
 
 	@Test
 	void testPrzykladnegoStudenta() {
-        assertThatUserTask(byTaskName("Złożenie Podania")).isCreated();
-        Map<String, Object> variables = Map.of(
-                "podanie", Map.of(
+        Map<String, Object> podanie = Map.of(
                         "nrAlbumu", "007",
                         "punktyECTS", 20,
                         "uzasadnienie", ""
-                )
         );
-        processTestContext.completeUserTask(byTaskName("Złożenie Podania"), variables);
+        Map<String, Object> decyzja = Map.of(
+                "czyPozytywna", true,
+                "uzasadnienie", "Wystarczająco dużo punktów ECTS"
+        );
+        testZaliczenia(podanie, decyzja, false);
+	}
+
+    @Test
+    void zaMaloPunktow() {
+        Map<String, Object> podanie = Map.of(
+                "nrAlbumu", "007",
+                "punktyECTS", 10,
+                "uzasadnienie", "AAAAAAAAAAAAAAAAAAA"
+        );
+        Map<String, Object> decyzja = Map.of(
+                "czyPozytywna", false,
+                "uzasadnienie", "Za mało punktów ECTS"
+        );
+        testZaliczenia(podanie, decyzja, false);
+    }
+
+    @Test
+    void dobreUzasadnienie() {
+        Map<String, Object> podanie = Map.of(
+                "nrAlbumu", "007",
+                "punktyECTS", 15,
+                "uzasadnienie", "AAAAAAAAAAAAAAAAAAA"
+        );
+        Map<String, Object> decyzja = Map.of(
+                "czyPozytywna", true,
+                "uzasadnienie", "Mało punktów ECTS ale dobre uzasadnienie"
+        );
+        testZaliczenia(podanie, decyzja, false);
+    }
+
+    @Test
+    void decyzjaDziekanatu() {
+        Map<String, Object> podanie = Map.of(
+                "nrAlbumu", "007",
+                "punktyECTS", 15,
+                "uzasadnienie", ""
+        );
+        Map<String, Object> decyzja = Map.of(
+                "czyPozytywna", true,
+                "uzasadnienie", "Mało punktów ECTS - warunkowe zaliczenie"
+        );
+        testZaliczenia(podanie, decyzja, true);
+    }
+
+    void testZaliczenia(Map<String, Object> podanieIn, Map<String, Object> decyzjaOut, boolean czyDziekanat){
+        assertThatUserTask(byTaskName("Złożenie Podania")).isCreated();
+        processTestContext.completeUserTask(byTaskName("Złożenie Podania"), Map.of("podanie", podanieIn));
+
+        if(czyDziekanat){
+            assertThatUserTask(byTaskName("Decyzja Dziekanatu")).isCreated();
+            processTestContext.completeUserTask(byTaskName("Decyzja Dziekanatu"), Map.of("decyzja",decyzjaOut));
+        }
+
         assertThatUserTask(byTaskName("Odebranie decyzji")).isCreated();
         assertThat(processInstance).hasVariableSatisfies("decyzja",
                 Map.class, decyzja -> {
-                    Assertions.assertThat(decyzja.get("czyPozytywna"));
+                    Assertions.assertThat(decyzja.get("czyPozytywna")).isEqualTo(decyzjaOut.get("czyPozytywna"));
+                    Assertions.assertThat(decyzja.get("uzasadnienie")).isEqualTo(decyzjaOut.get("uzasadnienie"));
                 });
         processTestContext.completeUserTask(byTaskName("Odebranie decyzji"));
-	}
-
+    }
 }
