@@ -57,7 +57,7 @@ class ZaliczenieSemestruApplicationTests {
         assertThatUserTask(byTaskName("Odebranie decyzji")).isCreated();
         assertThat(processInstance).hasVariableSatisfies("decyzja",
                 Map.class, decyzja -> {
-                    Assertions.assertThat(decyzja.get("czyPozytywna"));
+                    Assertions.assertThat(decyzja.get("czyPozytywna")).isEqualTo(Boolean.TRUE);
                 });
         processTestContext.completeUserTask(byTaskName("Odebranie decyzji"));
 	}
