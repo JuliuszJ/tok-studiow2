@@ -28,7 +28,7 @@ class ZaliczenieSemestruApplicationTests {
 
     @BeforeEach
     void initProcess(){
-        CamundaAssert.setAssertionTimeout(Duration.ofMinutes(1));
+        CamundaAssert.setAssertionTimeout(Duration.ofSeconds(20));
         processInstance = client
                 .newCreateInstanceCommand()
                 .bpmnProcessId("zaliczenie-semestru-process")
