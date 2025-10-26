@@ -26,7 +26,6 @@ class ZaliczenieSemestruApplicationTests {
     @Autowired private CamundaProcessTestContext processTestContext;
     private ProcessInstanceEvent processInstance;
 
-    @BeforeEach
     void initProcess(){
         CamundaAssert.setAssertionTimeout(Duration.ofSeconds(10));
         processInstance = client
@@ -38,7 +37,6 @@ class ZaliczenieSemestruApplicationTests {
         assertThat(processInstance).isActive();
     }
 
-    @AfterEach
     void isCompletedTest(){
         assertThat(processInstance).isCompleted();
     }
@@ -100,6 +98,7 @@ class ZaliczenieSemestruApplicationTests {
     }
 
     void testZaliczenia(Map<String, Object> podanieIn, Map<String, Object> decyzjaOut, boolean czyDziekanat){
+        initProcess();
         assertThatUserTask(byTaskName("Złożenie Podania")).isCreated();
         processTestContext.completeUserTask(byTaskName("Złożenie Podania"), Map.of("podanie", podanieIn));
 
@@ -115,5 +114,45 @@ class ZaliczenieSemestruApplicationTests {
                     Assertions.assertThat(decyzja.get("uzasadnienie")).isEqualTo(decyzjaOut.get("uzasadnienie"));
                 });
         processTestContext.completeUserTask(byTaskName("Odebranie decyzji"));
+        isCompletedTest();
+    }
+
+    @Test
+    void pobranieOplatySukces(){
+        pobranieOplaty(true);
+    }
+    @Test
+    void pobranieOplatyBrakSukcesu(){
+        pobranieOplaty(false);
+    }
+
+    void pobranieOplaty(boolean sukces){
+        CamundaAssert.setAssertionTimeout(Duration.ofSeconds(10));
+        Map<String, Object> oplata = Map.of(
+                "nrKonta", "007",
+                "kwota", sukces ? 100 : -100,
+                "czyZgoda", true,
+                "status", "",
+                "nrTrans", ""
+        );
+        ProcessInstanceEvent oplataProcessInstance = client
+                .newCreateInstanceCommand()
+                .bpmnProcessId("pobranie-oplaty")
+                .latestVersion()
+                .variables(Map.of("oplata", oplata))
+                .send()
+                .join();
+        if(sukces) {
+            assertThat(oplataProcessInstance).isCompleted();
+
+            assertThat(oplataProcessInstance).hasVariableSatisfies("oplata",
+                    Map.class, oplataTest -> {
+                        Assertions.assertThat(oplataTest.get("nrTrans")).isEqualTo("ABC321");
+                    });
+
+        }
+        else {
+            assertThat(oplataProcessInstance).hasActiveIncidents();
+        }
     }
 }

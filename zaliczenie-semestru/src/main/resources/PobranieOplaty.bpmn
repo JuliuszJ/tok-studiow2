@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1b6jh2k" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.39.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0">
+  <bpmn:process id="pobranie-oplaty" name="Pobranie Opłaty" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_00qa2h1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_06sj93e" name="Czy porawna kwota?" default="Flow_081lbjp">
+      <bpmn:incoming>Flow_00qa2h1</bpmn:incoming>
+      <bpmn:outgoing>Flow_081lbjp</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1a3ze77</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_00qa2h1" sourceRef="StartEvent_1" targetRef="Gateway_06sj93e" />
+    <bpmn:sequenceFlow id="Flow_081lbjp" name="tak" sourceRef="Gateway_06sj93e" targetRef="Activity_1ki45kp" />
+    <bpmn:scriptTask id="Activity_1ki45kp" name="Utworzenie numeru transakcji">
+      <bpmn:extensionElements>
+        <zeebe:script expression="=put(oplata, &#34;nrTrans&#34;, &#34;ABC321&#34;)" resultVariable="oplata" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_081lbjp</bpmn:incoming>
+      <bpmn:outgoing>Flow_06habm1</bpmn:outgoing>
+    </bpmn:scriptTask>
+    <bpmn:endEvent id="Event_1wzicy7">
+      <bpmn:incoming>Flow_06habm1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_06habm1" sourceRef="Activity_1ki45kp" targetRef="Event_1wzicy7" />
+    <bpmn:sequenceFlow id="Flow_1a3ze77" name="Nie" sourceRef="Gateway_06sj93e" targetRef="oplata-error">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=oplata.kwota &lt;= 0</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="oplata-error">
+      <bpmn:incoming>Flow_1a3ze77</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_13sodf2" errorRef="Error_08uws9v" />
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:error id="Error_08uws9v" name="OplataError" errorCode="OplataKwotaErrCode" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="pobranie-oplaty">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_06sj93e_di" bpmnElement="Gateway_06sj93e" isMarkerVisible="true">
+        <dc:Bounds x="275" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="267" y="118" width="66" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xxweoc_di" bpmnElement="Activity_1ki45kp">
+        <dc:Bounds x="390" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1wzicy7_di" bpmnElement="Event_1wzicy7">
+        <dc:Bounds x="562" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_12cxt7m_di" bpmnElement="oplata-error">
+        <dc:Bounds x="282" y="352" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_00qa2h1_di" bpmnElement="Flow_00qa2h1">
+        <di:waypoint x="218" y="180" />
+        <di:waypoint x="275" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_081lbjp_di" bpmnElement="Flow_081lbjp">
+        <di:waypoint x="325" y="180" />
+        <di:waypoint x="390" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="350" y="162" width="16" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06habm1_di" bpmnElement="Flow_06habm1">
+        <di:waypoint x="490" y="180" />
+        <di:waypoint x="562" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1a3ze77_di" bpmnElement="Flow_1a3ze77">
+        <di:waypoint x="300" y="205" />
+        <di:waypoint x="300" y="352" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="307" y="279" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
