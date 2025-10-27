@@ -1,7 +1,6 @@
 package pl.dziekanat.zaliczenie_semestru;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import io.camunda.shaded.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -11,12 +10,11 @@ import io.camunda.process.test.api.CamundaAssert;
 import io.camunda.process.test.api.CamundaProcessTestContext;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import static io.camunda.process.test.api.CamundaAssert.*;
-import static io.camunda.process.test.api.assertions.ElementSelectors.*;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.*;
 
 @SpringBootTest
@@ -52,7 +50,7 @@ class ZaliczenieSemestruApplicationTests {
                 "czyPozytywna", true,
                 "uzasadnienie", "Wystarczająco dużo punktów ECTS"
         );
-        testZaliczenia(podanie, decyzja, false);
+        testZaliczenia(podanie, null, decyzja, null, false);
 	}
 
     @Test
@@ -66,7 +64,7 @@ class ZaliczenieSemestruApplicationTests {
                 "czyPozytywna", false,
                 "uzasadnienie", "Za mało punktów ECTS"
         );
-        testZaliczenia(podanie, decyzja, false);
+        testZaliczenia(podanie, null, decyzja, null, false);
     }
 
     @Test
@@ -80,31 +78,92 @@ class ZaliczenieSemestruApplicationTests {
                 "czyPozytywna", true,
                 "uzasadnienie", "Mało punktów ECTS ale dobre uzasadnienie"
         );
-        testZaliczenia(podanie, decyzja, false);
+        testZaliczenia(podanie, null, decyzja, null, false);
     }
 
     @Test
-    void decyzjaDziekanatu() {
+    void decyzjaDziekanatuNegatywna() {
         Map<String, Object> podanie = Map.of(
                 "nrAlbumu", "007",
                 "punktyECTS", 15,
                 "uzasadnienie", ""
         );
         Map<String, Object> decyzja = Map.of(
-                "czyPozytywna", true,
-                "uzasadnienie", "Mało punktów ECTS - warunkowe zaliczenie"
+                "czyPozytywna", false,
+                "uzasadnienie", "Mało punktów ECTS - brak zaliczenia"
         );
-        testZaliczenia(podanie, decyzja, true);
+
+        testZaliczenia(podanie, decyzja, decyzja, null, true);
     }
 
-    void testZaliczenia(Map<String, Object> podanieIn, Map<String, Object> decyzjaOut, boolean czyDziekanat){
+    @Test
+    void decyzjaDziekanatuPozytywnaBrakZgody() {
+        Map<String, Object> podanie = Map.of(
+                "nrAlbumu", "007",
+                "punktyECTS", 15,
+                "uzasadnienie", ""
+        );
+        Map<String, Object> decyzjaDziekanatu = Map.of(
+                "czyPozytywna", true,
+                "uzasadnienie", "Mało punktów ECTS - warunkowe zaliczenia"
+        );
+        Map<String, Object> decyzjaOut = Map.of(
+                "czyPozytywna", false,
+                "uzasadnienie", "brak zgody na płatność"
+        );
+        Map<String, Object> oplata = Map.of(
+                "nrKonta", "007",
+                "kwota",  -100,
+                "czyZgoda", false,
+                "status", "",
+                "nrTrans", ""
+        );
+        testZaliczenia(podanie, decyzjaDziekanatu, decyzjaOut, oplata, true);
+    }
+
+    @Test
+    void decyzjaDziekanatuPozytywnaZeZgoda() {
+        Map<String, Object> podanie = Map.of(
+                "nrAlbumu", "007",
+                "punktyECTS", 15,
+                "uzasadnienie", ""
+        );
+        Map<String, Object> decyzjaOut = Map.of(
+                "czyPozytywna", true,
+                "uzasadnienie", "Mało punktów ECTS - warunkowe zaliczenia"
+        );
+        Map<String, Object> oplata = new HashMap<>(Map.of(
+                "nrKonta", "007",
+                "kwota",  100,
+                "czyZgoda", true,
+                "status", "",
+                "nrTrans", ""
+        ));
+        testZaliczenia(podanie, decyzjaOut, decyzjaOut, oplata, true);
+    }
+
+    void testZaliczenia(Map<String, Object> podanieIn, Map<String, Object> decyzjaDziekanatu, Map<String, Object> decyzjaOut,
+                        Map<String, Object> oplata, boolean czyDziekanat)  {
         initProcess();
         assertThatUserTask(byTaskName("Złożenie Podania")).isCreated();
         processTestContext.completeUserTask(byTaskName("Złożenie Podania"), Map.of("podanie", podanieIn));
 
         if(czyDziekanat){
             assertThatUserTask(byTaskName("Decyzja Dziekanatu")).isCreated();
-            processTestContext.completeUserTask(byTaskName("Decyzja Dziekanatu"), Map.of("decyzja",decyzjaOut));
+            processTestContext.completeUserTask(byTaskName("Decyzja Dziekanatu"), Map.of("decyzja",decyzjaDziekanatu));
+            if(oplata!=null) {
+                assertThatUserTask(byTaskName("Dane Płatności")).isCreated();
+                processTestContext.completeUserTask(byTaskName("Dane Płatności"), Map.of("oplata", oplata));
+                /* nie działa dla Camunda 8.8
+                if ( (int)oplata.get("kwota") <0 ) {
+                    assertThatUserTask(byTaskName("Dane Płatności")).isCreated();
+
+                    oplata.put("kwota", 100);
+                    processTestContext.completeUserTask(byTaskName("Dane Płatności"), Map.of("oplata", oplata));
+                }
+                 */
+            }
+
         }
 
         assertThatUserTask(byTaskName("Odebranie decyzji")).isCreated();
