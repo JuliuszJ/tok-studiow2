@@ -183,7 +183,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:scriptTask id="Activity_0fhggt7" name="Decyzja negatywna">
       <bpmn:extensionElements>
-        <zeebe:script expression="=put(&#10;  put(decyzja, &#34;czyPozytywna&#34;, false),&#10;  &#34;uzasadnienie&#34;, &#34;brak zgody na płatnośći&#34;   &#10;)" resultVariable="decyzja" />
+        <zeebe:script expression="=put(&#10;  put(decyzja, &#34;czyPozytywna&#34;, false),&#10;  &#34;uzasadnienie&#34;, &#34;brak zgody na płatność&#34;   &#10;)" resultVariable="decyzja" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0wylzv8</bpmn:incoming>
       <bpmn:outgoing>Flow_0ks5ik7</bpmn:outgoing>
@@ -197,12 +197,12 @@
         <dc:Bounds x="145" y="72" width="1539" height="793" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Lane_0tw2rf4_di" bpmnElement="Lane_0tw2rf4" isHorizontal="true">
-        <dc:Bounds x="175" y="440" width="1509" height="425" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_0p09tyq_di" bpmnElement="Lane_0p09tyq" isHorizontal="true">
         <dc:Bounds x="175" y="72" width="1509" height="368" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0tw2rf4_di" bpmnElement="Lane_0tw2rf4" isHorizontal="true">
+        <dc:Bounds x="175" y="440" width="1509" height="425" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
@@ -255,16 +255,6 @@
         <dc:Bounds x="934" y="497" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1exrqer_di" bpmnElement="Gateway_1exrqer" isMarkerVisible="true" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
-        <dc:Bounds x="1105" y="352" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1161" y="390" width="59" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_188dqpq_di" bpmnElement="Activity_0fhggt7">
-        <dc:Bounds x="1204" y="280" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0spas9h_di" bpmnElement="Activity_0spas9h" isExpanded="true">
         <dc:Bounds x="1084" y="457" width="340" height="208" />
         <bpmndi:BPMNLabel />
@@ -293,6 +283,16 @@
         <di:waypoint x="1324" y="555" />
         <di:waypoint x="1324" y="523" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_1exrqer_di" bpmnElement="Gateway_1exrqer" isMarkerVisible="true" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="1105" y="352" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1161" y="390" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_188dqpq_di" bpmnElement="Activity_0fhggt7">
+        <dc:Bounds x="1204" y="280" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0s1jzg4_di" bpmnElement="Event_09derz5">
         <dc:Bounds x="1066" y="509" width="36" height="36" />
       </bpmndi:BPMNShape>

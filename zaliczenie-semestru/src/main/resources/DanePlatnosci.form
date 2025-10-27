@@ -1,0 +1,61 @@
+{
+  "components": [
+    {
+      "label": "Numer konta",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_03c1utl",
+        "columns": null
+      },
+      "id": "Field_1ts4gw6",
+      "key": "oplata.nrKonta"
+    },
+    {
+      "label": "Kwota",
+      "type": "number",
+      "layout": {
+        "row": "Row_1sz6sfz",
+        "columns": null
+      },
+      "id": "Field_0soijjg",
+      "key": "oplata.kwota",
+      "defaultValue": 100,
+      "decimalDigits": 2,
+      "readonly": false
+    },
+    {
+      "label": "Czy zgoda?",
+      "type": "radio",
+      "layout": {
+        "row": "Row_0616yo0",
+        "columns": null
+      },
+      "id": "Field_1ovc4ok",
+      "key": "oplata.czyZgoda",
+      "valuesExpression": "=[\n {\n  \"label\": \"Tak\",\n  \"value\": true\n },\n {\n  \"label\": \"Nie\",\n  \"value\": false\n }\n]",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Status",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1wub6f7",
+        "columns": null
+      },
+      "id": "Field_0asjsgx",
+      "key": "oplata.status",
+      "readonly": true
+    }
+  ],
+  "type": "default",
+  "id": "dane-platnosci",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.7.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.39.0"
+  },
+  "schemaVersion": 19
+}
