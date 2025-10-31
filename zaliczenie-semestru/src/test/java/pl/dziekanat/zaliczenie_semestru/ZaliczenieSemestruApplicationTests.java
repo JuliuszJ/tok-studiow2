@@ -142,6 +142,27 @@ class ZaliczenieSemestruApplicationTests {
         testZaliczenia(podanie, decyzjaOut, decyzjaOut, oplata, true);
     }
 
+    @Test
+    void decyzjaDziekanatuTimeoutZeZgoda() {
+        Map<String, Object> podanie = Map.of(
+                "nrAlbumu", "007",
+                "punktyECTS", 15,
+                "uzasadnienie", ""
+        );
+        Map<String, Object> decyzjaOut = Map.of(
+                "czyPozytywna", true,
+                "uzasadnienie", "brak czasu na rozpatrzenie"
+        );
+        Map<String, Object> oplata = new HashMap<>(Map.of(
+                "nrKonta", "007",
+                "kwota",  100,
+                "czyZgoda", true,
+                "status", "",
+                "nrTrans", ""
+        ));
+        testZaliczenia(podanie, decyzjaOut, decyzjaOut, oplata, true);
+    }
+
     void testZaliczenia(Map<String, Object> podanieIn, Map<String, Object> decyzjaDziekanatu, Map<String, Object> decyzjaOut,
                         Map<String, Object> oplata, boolean czyDziekanat)  {
         initProcess();
@@ -150,7 +171,12 @@ class ZaliczenieSemestruApplicationTests {
 
         if(czyDziekanat){
             assertThatUserTask(byTaskName("Decyzja Dziekanatu")).isCreated();
-            processTestContext.completeUserTask(byTaskName("Decyzja Dziekanatu"), Map.of("decyzja",decyzjaDziekanatu));
+            if (decyzjaOut!=null && "brak czasu na rozpatrzenie".equals(decyzjaOut.get("uzasadnienie"))) {
+                processTestContext.increaseTime(Duration.ofDays(7));
+                assertThat(processInstance).hasCompletedElements("dziekanat-deadline");
+            }else {
+                processTestContext.completeUserTask(byTaskName("Decyzja Dziekanatu"), Map.of("decyzja", decyzjaDziekanatu));
+            }
             if(oplata!=null) {
                 assertThatUserTask(byTaskName("Dane Płatności")).isCreated();
                 processTestContext.completeUserTask(byTaskName("Dane Płatności"), Map.of("oplata", oplata));
