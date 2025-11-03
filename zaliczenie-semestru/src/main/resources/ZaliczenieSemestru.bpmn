@@ -10,7 +10,7 @@
         <bpmn:flowNodeRef>Gateway_1vbp1n3</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_0gbs1ty</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_0e5fvjl</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Event_0hj9fgb</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>catch-oplata-kwota-err</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>dziekanat-deadline</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1dlaoug</bpmn:flowNodeRef>
       </bpmn:lane>
@@ -178,19 +178,18 @@
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="Flow_0tql6uy" name="Tak" sourceRef="Gateway_08d950u" targetRef="Activity_0e5fvjl" />
     <bpmn:sequenceFlow id="Flow_13tw8ti" sourceRef="Activity_0e5fvjl" targetRef="Gateway_0ho5hd2" />
-    <bpmn:boundaryEvent id="Event_0hj9fgb" attachedToRef="Activity_0e5fvjl">
-      <bpmn:outgoing>Flow_013wz9o</bpmn:outgoing>
+    <bpmn:boundaryEvent id="catch-oplata-kwota-err" attachedToRef="Activity_0e5fvjl">
+      <bpmn:outgoing>Flow_0my7mt7</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_0dk6sxs" errorRef="Error_0mr2wja" />
     </bpmn:boundaryEvent>
     <bpmn:scriptTask id="Activity_0gbs1ty" name="Zmiana statusu opłaty (error)">
       <bpmn:extensionElements>
         <zeebe:script expression="=put(oplata, &#34;status&#34;, &#34;błąd kwoty&#34;)" resultVariable="oplata" />
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_013wz9o</bpmn:incoming>
+      <bpmn:incoming>Flow_0my7mt7</bpmn:incoming>
       <bpmn:outgoing>Flow_02ksla0</bpmn:outgoing>
     </bpmn:scriptTask>
     <bpmn:sequenceFlow id="Flow_02ksla0" sourceRef="Activity_0gbs1ty" targetRef="Activity_0ndvwx1" />
-    <bpmn:sequenceFlow id="Flow_013wz9o" sourceRef="Event_0hj9fgb" targetRef="Activity_0gbs1ty" />
     <bpmn:boundaryEvent id="dziekanat-deadline" attachedToRef="Activity_0bv4bxz">
       <bpmn:outgoing>Flow_0f2cmjk</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1p4cmjp">
@@ -206,6 +205,7 @@
       <bpmn:incoming>Flow_0f2cmjk</bpmn:incoming>
       <bpmn:outgoing>Flow_0t93kmj</bpmn:outgoing>
     </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_0my7mt7" sourceRef="catch-oplata-kwota-err" targetRef="Activity_0gbs1ty" />
   </bpmn:process>
   <bpmn:error id="Error_1v6u2pq" name="OplataError" errorCode="OplataKwotaErrCode" />
   <bpmn:error id="Error_0mr2wja" name="OplataError" errorCode="OplataKwotaErrCode" />
@@ -278,10 +278,6 @@
           <dc:Bounds x="1050" y="313" width="59" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_18lpe3x_di" bpmnElement="Activity_1dlaoug">
-        <dc:Bounds x="740" y="610" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0e5fvjl_di" bpmnElement="Activity_0e5fvjl" isExpanded="true">
         <dc:Bounds x="1060" y="470" width="370" height="220" />
         <bpmndi:BPMNLabel />
@@ -316,11 +312,15 @@
         <dc:Bounds x="910" y="500" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0nxp6c7_di" bpmnElement="Event_0hj9fgb">
-        <dc:Bounds x="1042" y="522" width="36" height="36" />
+      <bpmndi:BPMNShape id="Activity_18lpe3x_di" bpmnElement="Activity_1dlaoug">
+        <dc:Bounds x="740" y="610" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0wm2ye9_di" bpmnElement="dziekanat-deadline">
         <dc:Bounds x="642" y="549" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0nxp6c7_di" bpmnElement="catch-oplata-kwota-err">
+        <dc:Bounds x="1042" y="522" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1abvns1_di" bpmnElement="Flow_1abvns1">
         <di:waypoint x="281" y="157" />
@@ -414,10 +414,6 @@
         <di:waypoint x="940" y="500" />
         <di:waypoint x="940" y="400" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_013wz9o_di" bpmnElement="Flow_013wz9o">
-        <di:waypoint x="1042" y="540" />
-        <di:waypoint x="1010" y="540" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0f2cmjk_di" bpmnElement="Flow_0f2cmjk">
         <di:waypoint x="660" y="585" />
         <di:waypoint x="660" y="650" />
@@ -426,6 +422,10 @@
       <bpmndi:BPMNEdge id="Flow_0t93kmj_di" bpmnElement="Flow_0t93kmj">
         <di:waypoint x="790" y="610" />
         <di:waypoint x="790" y="552" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0my7mt7_di" bpmnElement="Flow_0my7mt7">
+        <di:waypoint x="1042" y="540" />
+        <di:waypoint x="1010" y="540" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
