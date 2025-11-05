@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0dwfrp8" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.39.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0">
+  <bpmn:process id="receiver" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>start2catch</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="start2catch" sourceRef="StartEvent_1" targetRef="Event_catch_odwolanie" />
+    <bpmn:intermediateCatchEvent id="Event_catch_odwolanie">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="=decyzja" target="decyzja" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>start2catch</bpmn:incoming>
+      <bpmn:outgoing>catch2end</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="odwolanie-res-msg-def-id" messageRef="odwolanie-res-msg-id" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>catch2end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="catch2end" sourceRef="Event_catch_odwolanie" targetRef="EndEvent_1" />
+  </bpmn:process>
+  <bpmn:message id="odwolanie-res-msg-id" name="odwolanie-res-msg">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=kluczKorelacji" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="receiver">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0qlgqd6_di" bpmnElement="Event_catch_odwolanie">
+        <dc:Bounds x="272" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_06sl5j1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="362" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1hmei0o_di" bpmnElement="start2catch">
+        <di:waypoint x="218" y="100" />
+        <di:waypoint x="272" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19j7iul_di" bpmnElement="catch2end">
+        <di:waypoint x="308" y="100" />
+        <di:waypoint x="362" y="100" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
