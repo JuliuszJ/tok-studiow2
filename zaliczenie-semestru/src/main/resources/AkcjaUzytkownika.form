@@ -1,0 +1,27 @@
+{
+  "components": [
+    {
+      "label": "Ponowienie?",
+      "type": "radio",
+      "layout": {
+        "row": "Row_046ieng",
+        "columns": null
+      },
+      "id": "Field_16wfwh5",
+      "key": "ponowienie",
+      "valuesExpression": "=[\n {\n  \"label\": \"Tak\",\n  \"value\": true\n },\n {\n  \"label\": \"Nie\",\n  \"value\": false\n }\n]",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "akcja-uzytkownika-form",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.7.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.39.0"
+  },
+  "schemaVersion": 19
+}

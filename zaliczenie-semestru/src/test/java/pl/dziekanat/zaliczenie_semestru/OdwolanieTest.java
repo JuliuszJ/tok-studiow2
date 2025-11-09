@@ -1,16 +1,11 @@
 package pl.dziekanat.zaliczenie_semestru;
 
 import io.camunda.client.CamundaClient;
-import io.camunda.client.api.response.CorrelateMessageResponse;
 import io.camunda.client.api.response.ProcessInstanceEvent;
 import io.camunda.client.api.response.PublishMessageResponse;
-import io.camunda.client.api.search.response.ProcessInstance;
 import io.camunda.process.test.api.CamundaAssert;
 import io.camunda.process.test.api.CamundaProcessTestContext;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
-import io.camunda.process.test.api.assertions.ProcessInstanceAssert;
-import io.camunda.process.test.api.assertions.ProcessInstanceSelector;
-import io.camunda.process.test.api.assertions.ProcessInstanceSelectors;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +13,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static io.camunda.process.test.api.CamundaAssert.*;
 
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.camunda.process.test.api.CamundaAssert.assertThat;
-import static io.camunda.process.test.api.assertions.ProcessInstanceSelectors.byKey;
+import static io.camunda.process.test.api.assertions.UserTaskSelectors.byElementId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 
 @SpringBootTest
@@ -40,11 +33,11 @@ public class OdwolanieTest {
     void odwolanie(){
         CamundaAssert.setAssertionTimeout(Duration.ofSeconds(15));
 
-        String kluczKorelacji = java.util.UUID.randomUUID().toString();
     Map<String, Object> podanie = Map.of(
             "nrAlbumu", "007",
             "punktyECTS", 15,
-            "uzasadnienie", ""
+            "uzasadnienie", "",
+            "nrSprawy", java.util.UUID.randomUUID().toString()
     );
     Map<String, Object> decyzja = Map.of(
             "czyPozytywna", false,
@@ -78,7 +71,7 @@ public class OdwolanieTest {
         "  </bpmn:process>" +
         "  <bpmn:message id='odwolanie-res-msg-id' name='odwolanie-res-msg'>" +
         "    <bpmn:extensionElements>" +
-        "      <zeebe:subscription correlationKey='=kluczKorelacji' />" +
+        "      <zeebe:subscription correlationKey='=podanie.nrSprawy' />" +
         "    </bpmn:extensionElements>" +
         "  </bpmn:message>" +
         "</bpmn:definitions>";
@@ -90,52 +83,32 @@ public class OdwolanieTest {
     ProcessInstanceEvent receiverInstance = client.newCreateInstanceCommand()
             .bpmnProcessId("receiver")
             .latestVersion()
-            .variables(Map.of("kluczKorelacji", kluczKorelacji)) // Ustawienie klucza dla subskrypcji
+            .variables(Map.of("podanie", podanie))
             .send()
             .join();
-/*
-    PublishMessageResponse publishMessageResponse = client
+
+    client
             .newPublishMessageCommand()
             .messageName("odwolanie-req-msg")
             .withoutCorrelationKey()
             .variables(
                     Map.of(
-                            "kluczKorelacji", kluczKorelacji,
                             "podanie", podanie,
                             "decyzja", decyzja
                     ))
             .send()
             .join();
-*/
-    CorrelateMessageResponse correlateMessageResponse = client
-            .newCorrelateMessageCommand()
-            .messageName("odwolanie-req-msg")
-            .withoutCorrelationKey()
-            .variables(
-                    Map.of(
-                            "kluczKorelacji", kluczKorelacji,
-                            "podanie", podanie,
-                            "decyzja", decyzja
-                    ))
-            .send()
-            .join();
-    Long oplataInstanceKey = correlateMessageResponse.getProcessInstanceKey();
+
+
     assertThatUserTask(byTaskName("Decyzja Rektora")).isCreated();
     assertThatUserTask(byTaskName("Decyzja Dziekana")).isCreated();
     processTestContext.completeUserTask(byTaskName("Decyzja Rektora"), Map.of("decyzja", Map.of("czyPozytywna", true, "uzasadnienie", "decyzja Rektora")));
     assertThatUserTask(byTaskName("Decyzja Rektora")).isCompleted();
     assertThatUserTask(byTaskName("Decyzja Dziekana")).isCanceled();
+
     assertThatProcessInstance(receiverInstance).isCompleted();
 
     assertThat(receiverInstance).hasVariableSatisfies("decyzja",
-            Map.class, decyzjaOut -> {
-                Assertions.assertThat(decyzjaOut.get("uzasadnienie")).isNotEqualTo("");
-            });
-
-    ProcessInstanceAssert processInstanceAssert = assertThatProcessInstance(byKey(oplataInstanceKey))
-            .isCompleted();
-    assertThatProcessInstance(byKey(oplataInstanceKey))
-        .hasVariableSatisfies("decyzja",
             Map.class, decyzjaOut -> {
                 Assertions.assertThat(decyzjaOut.get("uzasadnienie")).isNotEqualTo("");
             });
@@ -143,7 +116,7 @@ public class OdwolanieTest {
 
     @Test
     void caller(){
-        CamundaAssert.setAssertionTimeout(Duration.ofSeconds(20));
+        CamundaAssert.setAssertionTimeout(Duration.ofSeconds(15));
 
         ProcessInstanceEvent caller = client
                 .newCreateInstanceCommand()
@@ -151,7 +124,16 @@ public class OdwolanieTest {
                 .latestVersion()
                 .send()
                 .join();
-        assertThat(caller).isCompleted();
+        assertThatProcessInstance(caller).hasCompletedElement("send", 1);
+
+        assertThatUserTask(byTaskName("Decyzja Rektora")).isCreated();
+        assertThatUserTask(byTaskName("Decyzja Dziekana")).isCreated();
+        processTestContext.completeUserTask(byTaskName("Decyzja Rektora"), Map.of("decyzja", Map.of("czyPozytywna", true, "uzasadnienie", "decyzja Rektora")));
+
+        assertThatProcessInstance(caller).hasCompletedElement("receive", 1);
+
+        assertThatProcessInstance(caller).isCompleted();
+
         assertThat(caller).hasVariableSatisfies("decyzja",
                 Map.class, decyzja -> {
                     Assertions.assertThat(decyzja.get("uzasadnienie")).isNotEqualTo("");

@@ -76,6 +76,22 @@
       "validate": {
         "required": true
       }
+    },
+    {
+      "label": "Czy odwołanie?",
+      "type": "radio",
+      "layout": {
+        "row": "Row_1jxso51",
+        "columns": null
+      },
+      "id": "Field_116xa9y",
+      "key": "podanie.czyOdwolanie",
+      "disabled": false,
+      "valuesExpression": "=[\n {\n  \"label\": \"Tak\",\n  \"value\": true\n },\n {\n  \"label\": \"Nie\",\n  \"value\": false\n }\n]",
+      "validate": {
+        "required": false
+      },
+      "readonly": "=not (decyzjaRO)"
     }
   ],
   "type": "default",
@@ -84,7 +100,7 @@
   "executionPlatformVersion": "8.7.0",
   "exporter": {
     "name": "Camunda Modeler",
-    "version": "5.39.0"
+    "version": "5.41.0"
   },
   "schemaVersion": 19
 }

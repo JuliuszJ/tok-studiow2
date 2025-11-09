@@ -1,6 +1,11 @@
 package pl.dziekanat.zaliczenie_semestru;
 
+import io.camunda.client.api.command.ClientException;
+import io.camunda.client.api.search.enums.UserTaskState;
+import io.camunda.client.api.search.response.UserTask;
+import io.camunda.process.test.api.assertions.UserTaskSelector;
 import io.camunda.shaded.awaitility.Awaitility;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -13,7 +18,10 @@ import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static io.camunda.process.test.api.CamundaAssert.*;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.*;
 
@@ -68,6 +76,22 @@ class ZaliczenieSemestruApplicationTests {
     }
 
     @Test
+    void zaMaloPunktowPozytwneOdwolanie() {
+        Map<String, Object> podanie = Map.of(
+                "nrAlbumu", "007",
+                "punktyECTS", 10,
+                "uzasadnienie", "AAAAAAAAAAAAAAAAAAA",
+                "nrSprawy", java.util.UUID.randomUUID().toString(),
+                "czyOdwolanie", true
+        );
+        Map<String, Object> decyzja = Map.of(
+                "czyPozytywna", false,
+                "uzasadnienie", "Za mało punktów ECTS"
+        );
+        testZaliczenia(podanie, null, decyzja, null, false);
+    }
+
+    @Test
     void dobreUzasadnienie() {
         Map<String, Object> podanie = Map.of(
                 "nrAlbumu", "007",
@@ -111,13 +135,13 @@ class ZaliczenieSemestruApplicationTests {
                 "czyPozytywna", false,
                 "uzasadnienie", "brak zgody na płatność"
         );
-        Map<String, Object> oplata = Map.of(
+        Map<String, Object> oplata = new HashMap<>(Map.of(
                 "nrKonta", "007",
-                "kwota",  -100,
+                "kwota",  100,
                 "czyZgoda", false,
                 "status", "",
                 "nrTrans", ""
-        );
+        ));
         testZaliczenia(podanie, decyzjaDziekanatu, decyzjaOut, oplata, true);
     }
 
@@ -134,7 +158,7 @@ class ZaliczenieSemestruApplicationTests {
         );
         Map<String, Object> oplata = new HashMap<>(Map.of(
                 "nrKonta", "007",
-                "kwota",  100,
+                "kwota",  -100,
                 "czyZgoda", true,
                 "status", "",
                 "nrTrans", ""
@@ -180,16 +204,22 @@ class ZaliczenieSemestruApplicationTests {
             if(oplata!=null) {
                 assertThatUserTask(byTaskName("Dane Płatności")).isCreated();
                 processTestContext.completeUserTask(byTaskName("Dane Płatności"), Map.of("oplata", oplata));
-                /* nie działa dla Camunda 8.8
                 if ( (int)oplata.get("kwota") <0 ) {
-                    assertThatUserTask(byTaskName("Dane Płatności")).isCreated();
+                    assertThat(processInstance).hasCompletedElements("catch-oplata-kwota-err");
 
+                    long platnoscInstanceKey = assertNewUserTaskCreated(processInstance.getProcessInstanceKey(), "Dane Płatności");
                     oplata.put("kwota", 100);
-                    processTestContext.completeUserTask(byTaskName("Dane Płatności"), Map.of("oplata", oplata));
+                    processTestContext.completeUserTask(byUserTaskInstanceKey(platnoscInstanceKey), Map.of("oplata", oplata));
                 }
-                 */
+
             }
 
+        }
+        if(czyDziekanat && oplata!=null && (boolean) oplata.get("czyZgoda")) {
+            assertThat(processInstance).hasVariableSatisfies("oplata",
+                    Map.class, oplataTest -> {
+                        Assertions.assertThat(oplataTest.get("nrTrans")).isEqualTo("ABC321");
+                    });
         }
 
         assertThatUserTask(byTaskName("Odebranie decyzji")).isCreated();
@@ -198,13 +228,58 @@ class ZaliczenieSemestruApplicationTests {
                     Assertions.assertThat(decyzja.get("czyPozytywna")).isEqualTo(decyzjaOut.get("czyPozytywna"));
                     Assertions.assertThat(decyzja.get("uzasadnienie")).isEqualTo(decyzjaOut.get("uzasadnienie"));
                 });
-        if(czyDziekanat && oplata!=null && (boolean) oplata.get("czyZgoda")) {
-            assertThat(processInstance).hasVariableSatisfies("oplata",
-                    Map.class, oplataTest -> {
-                        Assertions.assertThat(oplataTest.get("nrTrans")).isEqualTo("ABC321");
+
+        boolean czyOdwolanie = (boolean) podanieIn.get("czyOdwolanie");
+        Map<String, Object> podanieZodwolaniem = new HashMap<>(podanieIn);
+        podanieZodwolaniem.put("czyOdwolanie", czyOdwolanie);
+        processTestContext.completeUserTask(byTaskName("Odebranie decyzji"),  Map.of("podanie", podanieZodwolaniem));
+        if (czyOdwolanie){
+            assertThatUserTask(byTaskName("Decyzja Rektora")).isCreated();
+            assertThatUserTask(byTaskName("Decyzja Dziekana")).isCreated();
+            Map<String, Object> decyzjaRektora =  Map.of("czyPozytywna", true, "uzasadnienie", "decyzja Rektora");
+            processTestContext.completeUserTask(byTaskName("Decyzja Rektora"),Map.of("decyzja", decyzjaRektora));
+            assertThatUserTask(byTaskName("Decyzja Rektora")).isCompleted();
+            assertThatUserTask(byTaskName("Decyzja Dziekana")).isCanceled();
+
+            long odebranieDecyzjiInstanceKey= assertNewUserTaskCreated(processInstance.getProcessInstanceKey(), "Odebranie decyzji");
+            podanieZodwolaniem.put("czyOdwolanie", false);
+            processTestContext.completeUserTask(byUserTaskInstanceKey(odebranieDecyzjiInstanceKey),
+                    Map.of("podanie", podanieZodwolaniem));
+            assertThatUserTask(byUserTaskInstanceKey(odebranieDecyzjiInstanceKey)).isCompleted();
+            assertThat(processInstance).hasVariableSatisfies("decyzja",
+                    Map.class, decyzja -> {
+                        Assertions.assertThat(decyzja.get("czyPozytywna")).isEqualTo(decyzjaRektora.get("czyPozytywna"));
+                        Assertions.assertThat(decyzja.get("uzasadnienie")).isEqualTo(decyzjaRektora.get("uzasadnienie"));
                     });
         }
-        processTestContext.completeUserTask(byTaskName("Odebranie decyzji"));
+
         isCompletedTest();
+    }
+
+    long assertNewUserTaskCreated(final long processInstanceKey, final String userTaskName) {
+        final AtomicReference<Long> elementInstanceKeyRef = new AtomicReference<>();
+        Awaitility.await()
+                .ignoreException(ClientException.class)
+                .untilAsserted(
+                        () -> {
+                            final List<UserTask> userTasks = getUserTasks(processInstanceKey);
+                            org.junit.jupiter.api.Assertions.assertFalse(userTasks.isEmpty());
+                            final UserTask userTask = userTasks.getFirst();
+                            org.junit.jupiter.api.Assertions.assertEquals(userTaskName, userTask.getName());
+                            elementInstanceKeyRef.set(userTask.getElementInstanceKey());
+                        });
+        return  elementInstanceKeyRef.get();
+    }
+
+    private List<UserTask> getUserTasks(final long processInstanceKey) {
+        return client
+                .newUserTaskSearchRequest()
+                .filter(filter -> filter.processInstanceKey(processInstanceKey).state(UserTaskState.CREATED))
+                .send()
+                .join()
+                .items();
+    }
+    private static @NotNull UserTaskSelector byUserTaskInstanceKey(long userTaskInstanceKey) {
+        return userTask -> userTask.getElementInstanceKey() == userTaskInstanceKey;
     }
 }

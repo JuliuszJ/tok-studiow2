@@ -4,7 +4,6 @@
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:extensionElements>
         <zeebe:ioMapping>
-          <zeebe:output source="=kluczKorelacji" target="kluczKorelacji" />
           <zeebe:output source="=podanie" target="podanie" />
           <zeebe:output source="=decyzja" target="decyzja" />
         </zeebe:ioMapping>
@@ -17,7 +16,7 @@
         <zeebe:taskDefinition type="io.camunda:sendMessage:1" retries="3" />
         <zeebe:ioMapping>
           <zeebe:input source="odwolanie-res-msg" target="messageName" />
-          <zeebe:input source="=kluczKorelacji" target="correlationKey" />
+          <zeebe:input source="=podanie.nrSprawy" target="correlationKey" />
           <zeebe:input source="={&#34;decyzja&#34; : decyzja}" target="variables" />
           <zeebe:input source="correlate" target="correlationType.type" />
         </zeebe:ioMapping>
@@ -122,11 +121,11 @@
       <bpmndi:BPMNShape id="Activity_0gnct25_di" bpmnElement="Activity_0isv73n">
         <dc:Bounds x="490" y="250" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_09hj782_di" bpmnElement="Event_1xxd6li">
-        <dc:Bounds x="512" y="122" width="36" height="36" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0i4ti1k_di" bpmnElement="Event_0vvgovw">
         <dc:Bounds x="512" y="312" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_09hj782_di" bpmnElement="Event_1xxd6li">
+        <dc:Bounds x="512" y="122" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0p5p53c_di" bpmnElement="Flow_0p5p53c">
         <di:waypoint x="218" y="100" />

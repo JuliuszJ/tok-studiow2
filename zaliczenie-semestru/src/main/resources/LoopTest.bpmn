@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_04stual" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.39.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0">
+  <bpmn:process id="loop-test" name="Loop Test" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_11vecfw</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_11vecfw" sourceRef="StartEvent_1" targetRef="akcja-uzytkownika" />
+    <bpmn:exclusiveGateway id="ponowienie" default="Flow_05efzfj">
+      <bpmn:incoming>Flow_0d3dptp</bpmn:incoming>
+      <bpmn:outgoing>Flow_05efzfj</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1mtxk3e</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0d3dptp" sourceRef="akcja-uzytkownika" targetRef="ponowienie" />
+    <bpmn:endEvent id="Event_end">
+      <bpmn:incoming>Flow_05efzfj</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_05efzfj" sourceRef="ponowienie" targetRef="Event_end" />
+    <bpmn:sequenceFlow id="Flow_1mtxk3e" sourceRef="ponowienie" targetRef="akcja-uzytkownika">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=ponowienie</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="akcja-uzytkownika" name="Akcja użytkownika">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="akcja-uzytkownika-form" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_11vecfw</bpmn:incoming>
+      <bpmn:incoming>Flow_1mtxk3e</bpmn:incoming>
+      <bpmn:outgoing>Flow_0d3dptp</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="loop-test">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="182" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1kbwbtt_di" bpmnElement="ponowienie" isMarkerVisible="true">
+        <dc:Bounds x="455" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_15s2dh8_di" bpmnElement="Event_end">
+        <dc:Bounds x="592" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_19x4uec_di" bpmnElement="akcja-uzytkownika">
+        <dc:Bounds x="270" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_11vecfw_di" bpmnElement="Flow_11vecfw">
+        <di:waypoint x="218" y="120" />
+        <di:waypoint x="270" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0d3dptp_di" bpmnElement="Flow_0d3dptp">
+        <di:waypoint x="370" y="120" />
+        <di:waypoint x="455" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05efzfj_di" bpmnElement="Flow_05efzfj">
+        <di:waypoint x="505" y="120" />
+        <di:waypoint x="592" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mtxk3e_di" bpmnElement="Flow_1mtxk3e">
+        <di:waypoint x="480" y="145" />
+        <di:waypoint x="480" y="210" />
+        <di:waypoint x="320" y="210" />
+        <di:waypoint x="320" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
