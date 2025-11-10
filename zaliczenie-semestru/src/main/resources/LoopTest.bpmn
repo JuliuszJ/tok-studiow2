@@ -23,7 +23,7 @@
         <zeebe:userTask />
         <zeebe:formDefinition formId="akcja-uzytkownika-form" />
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_11vecfw</bpmn:incoming>
+      <bpmn:incoming>Flow_11vecfw</bpmn:incoming>use
       <bpmn:incoming>Flow_1mtxk3e</bpmn:incoming>
       <bpmn:outgoing>Flow_0d3dptp</bpmn:outgoing>
     </bpmn:userTask>
