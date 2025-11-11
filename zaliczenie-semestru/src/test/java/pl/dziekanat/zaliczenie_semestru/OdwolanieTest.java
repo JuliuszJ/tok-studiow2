@@ -2,7 +2,6 @@ package pl.dziekanat.zaliczenie_semestru;
 
 import io.camunda.client.CamundaClient;
 import io.camunda.client.api.response.ProcessInstanceEvent;
-import io.camunda.client.api.response.PublishMessageResponse;
 import io.camunda.process.test.api.CamundaAssert;
 import io.camunda.process.test.api.CamundaProcessTestContext;
 import io.camunda.process.test.api.CamundaSpringProcessTest;
@@ -18,7 +17,6 @@ import java.time.Duration;
 import java.util.Map;
 
 import static io.camunda.process.test.api.CamundaAssert.assertThat;
-import static io.camunda.process.test.api.assertions.UserTaskSelectors.byElementId;
 import static io.camunda.process.test.api.assertions.UserTaskSelectors.byTaskName;
 
 @SpringBootTest
@@ -98,7 +96,6 @@ public class OdwolanieTest {
                     ))
             .send()
             .join();
-
 
     assertThatUserTask(byTaskName("Decyzja Rektora")).isCreated();
     assertThatUserTask(byTaskName("Decyzja Dziekana")).isCreated();

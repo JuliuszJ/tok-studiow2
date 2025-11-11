@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_127387j" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.41.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_127387j" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.39.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.7.0">
   <bpmn:collaboration id="Collaboration_1htt0i8">
     <bpmn:participant id="Participant_1y84zcb" name="Zaliczenie Semestru" processRef="zaliczenie-semestru-process" />
   </bpmn:collaboration>
@@ -19,7 +19,6 @@
         <bpmn:flowNodeRef>Activity_0ithz23</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1v4kvpp</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_czy_zaliczyc_semestr</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Activity_07voo3u</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_0mym9bs</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_09z4i16</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_0ndvwx1</bpmn:flowNodeRef>
@@ -30,6 +29,8 @@
         <bpmn:flowNodeRef>Gateway_0tk2ndw</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_0g2jpxr</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_1i31vw5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_07voo3u</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_0iregj8</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:startEvent id="StartEvent_1">
@@ -81,20 +82,8 @@
     <bpmn:sequenceFlow id="Flow_1qutq4p" name="Nie" sourceRef="Gateway_czy_zaliczyc_semestr" targetRef="Activity_0bv4bxz">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=decyzja.czyPozytywna = null</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1wikpjn" sourceRef="Gateway_0mym9bs" targetRef="Activity_07voo3u" />
+    <bpmn:sequenceFlow id="Flow_1wikpjn" sourceRef="Gateway_0mym9bs" targetRef="Gateway_0iregj8" />
     <bpmn:sequenceFlow id="Flow_1oicprh" sourceRef="Activity_07voo3u" targetRef="Gateway_0tk2ndw" />
-    <bpmn:userTask id="Activity_07voo3u" name="Odebranie decyzji">
-      <bpmn:extensionElements>
-        <zeebe:userTask />
-        <zeebe:formDefinition formId="odebranie-decyzji" />
-        <zeebe:ioMapping>
-          <zeebe:input source="=true" target="decyzjaRO" />
-        </zeebe:ioMapping>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1wikpjn</bpmn:incoming>
-      <bpmn:incoming>Flow_08mfq4f</bpmn:incoming>
-      <bpmn:outgoing>Flow_1oicprh</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:exclusiveGateway id="Gateway_0mym9bs">
       <bpmn:incoming>zaliczyc_semestr_tak</bpmn:incoming>
       <bpmn:incoming>Flow_1m7y7do</bpmn:incoming>
@@ -213,17 +202,16 @@
     <bpmn:endEvent id="Event_0xjqsya">
       <bpmn:incoming>Flow_0k0fs4k</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:exclusiveGateway id="Gateway_0tk2ndw" default="Flow_0k0fs4k">
+    <bpmn:exclusiveGateway id="Gateway_0tk2ndw" name="Czy odwołanie?" default="Flow_0k0fs4k">
       <bpmn:incoming>Flow_1oicprh</bpmn:incoming>
       <bpmn:outgoing>Flow_0k0fs4k</bpmn:outgoing>
       <bpmn:outgoing>Flow_125xmnc</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_0k0fs4k" sourceRef="Gateway_0tk2ndw" targetRef="Event_0xjqsya" />
-    <bpmn:sequenceFlow id="Flow_125xmnc" sourceRef="Gateway_0tk2ndw" targetRef="Event_1i31vw5">
+    <bpmn:sequenceFlow id="Flow_0k0fs4k" name="Nie" sourceRef="Gateway_0tk2ndw" targetRef="Event_0xjqsya" />
+    <bpmn:sequenceFlow id="Flow_125xmnc" name="Tak" sourceRef="Gateway_0tk2ndw" targetRef="Event_1i31vw5">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=podanie.czyOdwolanie!=null and podanie.czyOdwolanie</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0ij7zp7" sourceRef="Event_1i31vw5" targetRef="Event_0g2jpxr" />
-    <bpmn:sequenceFlow id="Flow_08mfq4f" sourceRef="Event_0g2jpxr" targetRef="Activity_07voo3u" />
     <bpmn:intermediateCatchEvent id="Event_0g2jpxr" name="Odebranie wyniku odwołania">
       <bpmn:extensionElements>
         <zeebe:ioMapping>
@@ -231,7 +219,7 @@
         </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0ij7zp7</bpmn:incoming>
-      <bpmn:outgoing>Flow_08mfq4f</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0wdwmn9</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1ev0ipc" messageRef="Message_1fova35" />
     </bpmn:intermediateCatchEvent>
     <bpmn:intermediateThrowEvent id="Event_1i31vw5" name="Wysłanie odwołania" zeebe:modelerTemplate="io.camunda.connectors.message.intermediate.v1" zeebe:modelerTemplateVersion="0" zeebe:modelerTemplateIcon="data:image/svg+xml;base64,PHN2ZwogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHdpZHRoPSIyMDAwIgogICBoZWlnaHQ9IjIwMDAiCiAgIHZpZXdCb3g9IjAgMCAyMDAwIDIwMDAiCiAgIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIj4KICA8cGF0aAogICAgIHN0eWxlPSJjb2xvcjojMDAwMDAwIgogICAgIGQ9Im0gMCwyODQgMjAwMCwwIC0xMDAwLDU1NCB6Ii8+CiAgPHBhdGgKICAgICBzdHlsZT0iY29sb3I6IzAwMDAwMCIKICAgICBkPSJtIDAsNDUyIDEwMDAsNTQ4IDEwMDAsLTU0OCAwLDEwOTYgLTIwMDAsMCB6Ii8+Cjwvc3ZnPgo=">
@@ -252,6 +240,24 @@
       <bpmn:outgoing>Flow_0ij7zp7</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0hf3mbq" />
     </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="Activity_07voo3u" name="Odebranie decyzji">
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+        <zeebe:formDefinition formId="odebranie-decyzji" />
+        <zeebe:ioMapping>
+          <zeebe:input source="=true" target="decyzjaRO" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0w5iwpu</bpmn:incoming>
+      <bpmn:outgoing>Flow_1oicprh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_0iregj8">
+      <bpmn:incoming>Flow_1wikpjn</bpmn:incoming>
+      <bpmn:incoming>Flow_0wdwmn9</bpmn:incoming>
+      <bpmn:outgoing>Flow_0w5iwpu</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0w5iwpu" sourceRef="Gateway_0iregj8" targetRef="Activity_07voo3u" />
+    <bpmn:sequenceFlow id="Flow_0wdwmn9" sourceRef="Event_0g2jpxr" targetRef="Gateway_0iregj8" />
   </bpmn:process>
   <bpmn:error id="Error_1v6u2pq" name="OplataError" errorCode="OplataKwotaErrCode" />
   <bpmn:error id="Error_0mr2wja" name="OplataError" errorCode="OplataKwotaErrCode" />
@@ -263,15 +269,15 @@
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1htt0i8">
       <bpmndi:BPMNShape id="Participant_1y84zcb_di" bpmnElement="Participant_1y84zcb" isHorizontal="true">
-        <dc:Bounds x="145" y="72" width="2145" height="668" />
+        <dc:Bounds x="145" y="72" width="2065" height="668" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_0p09tyq_di" bpmnElement="Lane_0p09tyq" isHorizontal="true">
-        <dc:Bounds x="175" y="72" width="2115" height="368" />
+        <dc:Bounds x="175" y="72" width="2035" height="368" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_0tw2rf4_di" bpmnElement="Lane_0tw2rf4" isHorizontal="true">
-        <dc:Bounds x="175" y="440" width="2115" height="300" />
+        <dc:Bounds x="175" y="440" width="2035" height="300" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
@@ -292,10 +298,6 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1dtzs97_di" bpmnElement="Activity_0bv4bxz">
         <dc:Bounds x="611" y="487" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0e86b92_di" bpmnElement="Activity_07voo3u">
-        <dc:Bounds x="1470" y="117" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0mym9bs_di" bpmnElement="Gateway_0mym9bs" isMarkerVisible="true">
@@ -325,6 +327,13 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1050" y="313" width="59" height="14" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0e86b92_di" bpmnElement="Activity_07voo3u">
+        <dc:Bounds x="1580" y="117" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0iregj8_di" bpmnElement="Gateway_0iregj8" isMarkerVisible="true" bioc:stroke="#5b176d" bioc:fill="#e1bee7" color:background-color="#e1bee7" color:border-color="#5b176d">
+        <dc:Bounds x="1465" y="132" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0e5fvjl_di" bpmnElement="Activity_0e5fvjl" isExpanded="true">
         <dc:Bounds x="1060" y="470" width="370" height="220" />
@@ -369,6 +378,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0tk2ndw_di" bpmnElement="Gateway_0tk2ndw" isMarkerVisible="true" bioc:stroke="#5b176d" bioc:fill="#e1bee7" color:background-color="#e1bee7" color:border-color="#5b176d">
         <dc:Bounds x="2015" y="132" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2003" y="102" width="78" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1end7xa_di" bpmnElement="Event_0g2jpxr">
         <dc:Bounds x="1612" y="242" width="36" height="36" />
@@ -416,10 +428,10 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1wikpjn_di" bpmnElement="Flow_1wikpjn">
         <di:waypoint x="1415" y="157" />
-        <di:waypoint x="1470" y="157" />
+        <di:waypoint x="1465" y="157" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1oicprh_di" bpmnElement="Flow_1oicprh">
-        <di:waypoint x="1570" y="157" />
+        <di:waypoint x="1680" y="157" />
         <di:waypoint x="2015" y="157" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0660lzy_di" bpmnElement="Flow_0660lzy">
@@ -496,20 +508,30 @@
       <bpmndi:BPMNEdge id="Flow_0k0fs4k_di" bpmnElement="Flow_0k0fs4k" bioc:stroke="#5b176d" color:border-color="#5b176d">
         <di:waypoint x="2065" y="157" />
         <di:waypoint x="2132" y="157" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2090" y="139" width="17" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_125xmnc_di" bpmnElement="Flow_125xmnc">
         <di:waypoint x="2040" y="182" />
         <di:waypoint x="2040" y="260" />
         <di:waypoint x="1958" y="260" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2046" y="218" width="18" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0ij7zp7_di" bpmnElement="Flow_0ij7zp7">
         <di:waypoint x="1922" y="260" />
         <di:waypoint x="1648" y="260" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_08mfq4f_di" bpmnElement="Flow_08mfq4f">
+      <bpmndi:BPMNEdge id="Flow_0w5iwpu_di" bpmnElement="Flow_0w5iwpu">
+        <di:waypoint x="1515" y="157" />
+        <di:waypoint x="1580" y="157" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wdwmn9_di" bpmnElement="Flow_0wdwmn9">
         <di:waypoint x="1612" y="260" />
-        <di:waypoint x="1520" y="260" />
-        <di:waypoint x="1520" y="197" />
+        <di:waypoint x="1490" y="260" />
+        <di:waypoint x="1490" y="182" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

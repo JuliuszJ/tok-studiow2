@@ -229,11 +229,9 @@ class ZaliczenieSemestruApplicationTests {
                     Assertions.assertThat(decyzja.get("uzasadnienie")).isEqualTo(decyzjaOut.get("uzasadnienie"));
                 });
 
-        boolean czyOdwolanie = (boolean) podanieIn.get("czyOdwolanie");
-        Map<String, Object> podanieZodwolaniem = new HashMap<>(podanieIn);
-        podanieZodwolaniem.put("czyOdwolanie", czyOdwolanie);
-        processTestContext.completeUserTask(byTaskName("Odebranie decyzji"),  Map.of("podanie", podanieZodwolaniem));
-        if (czyOdwolanie){
+        processTestContext.completeUserTask(byTaskName("Odebranie decyzji"),  Map.of("podanie", podanieIn));
+        Boolean czyOdwolanie = (Boolean) podanieIn.get("czyOdwolanie");
+        if (czyOdwolanie!=null && czyOdwolanie) {
             assertThatUserTask(byTaskName("Decyzja Rektora")).isCreated();
             assertThatUserTask(byTaskName("Decyzja Dziekana")).isCreated();
             Map<String, Object> decyzjaRektora =  Map.of("czyPozytywna", true, "uzasadnienie", "decyzja Rektora");
@@ -242,9 +240,10 @@ class ZaliczenieSemestruApplicationTests {
             assertThatUserTask(byTaskName("Decyzja Dziekana")).isCanceled();
 
             long odebranieDecyzjiInstanceKey= assertNewUserTaskCreated(processInstance.getProcessInstanceKey(), "Odebranie decyzji");
-            podanieZodwolaniem.put("czyOdwolanie", false);
+            podanieIn = new HashMap<>(podanieIn);
+            podanieIn.put("czyOdwolanie", false);
             processTestContext.completeUserTask(byUserTaskInstanceKey(odebranieDecyzjiInstanceKey),
-                    Map.of("podanie", podanieZodwolaniem));
+                    Map.of("podanie", podanieIn));
             assertThatUserTask(byUserTaskInstanceKey(odebranieDecyzjiInstanceKey)).isCompleted();
             assertThat(processInstance).hasVariableSatisfies("decyzja",
                     Map.class, decyzja -> {
