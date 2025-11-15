@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: zaliczenie-semestru-srv
+camunda:
+  process-test:
+    # Switch from a managed to a remote runtime
+    runtime-mode: remote

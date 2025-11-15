@@ -190,6 +190,7 @@ class ZaliczenieSemestruApplicationTests {
     void testZaliczenia(Map<String, Object> podanieIn, Map<String, Object> decyzjaDziekanatu, Map<String, Object> decyzjaOut,
                         Map<String, Object> oplata, boolean czyDziekanat)  {
         initProcess();
+        processTestContext.mockJobWorker("rejestracja-odwolania").thenComplete();
         assertThatUserTask(byTaskName("Złożenie Podania")).isCreated();
         processTestContext.completeUserTask(byTaskName("Złożenie Podania"), Map.of("podanie", podanieIn));
 
@@ -232,8 +233,20 @@ class ZaliczenieSemestruApplicationTests {
         processTestContext.completeUserTask(byTaskName("Odebranie decyzji"),  Map.of("podanie", podanieIn));
         Boolean czyOdwolanie = (Boolean) podanieIn.get("czyOdwolanie");
         if (czyOdwolanie!=null && czyOdwolanie) {
+          assertThat(processInstance).hasCompletedElements("rejestracja-odwolania");
+/*
+            final Map<String, Object> finalPodanieIn = podanieIn;
+            assertThat(processInstance).hasVariableSatisfies("podanie",
+                    Map.class, podanie -> {
+                        Assertions.assertThat(podanie.get("nrAlbumu")).isEqualTo(finalPodanieIn.get("nrAlbumu"));
+                        Assertions.assertThat(podanie.get("rejestracjaOdwolania")).isEqualTo(true);
+                    });
+*/
             assertThatUserTask(byTaskName("Decyzja Rektora")).isCreated();
             assertThatUserTask(byTaskName("Decyzja Dziekana")).isCreated();
+
+
+
             Map<String, Object> decyzjaRektora =  Map.of("czyPozytywna", true, "uzasadnienie", "decyzja Rektora");
             processTestContext.completeUserTask(byTaskName("Decyzja Rektora"),Map.of("decyzja", decyzjaRektora));
             assertThatUserTask(byTaskName("Decyzja Rektora")).isCompleted();

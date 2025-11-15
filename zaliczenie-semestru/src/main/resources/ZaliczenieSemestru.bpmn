@@ -31,6 +31,7 @@
         <bpmn:flowNodeRef>Event_1i31vw5</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_07voo3u</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_0iregj8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>rejestracja-odwolania</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:startEvent id="StartEvent_1">
@@ -211,14 +212,14 @@
     <bpmn:sequenceFlow id="Flow_125xmnc" name="Tak" sourceRef="Gateway_0tk2ndw" targetRef="Event_1i31vw5">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=podanie.czyOdwolanie!=null and podanie.czyOdwolanie</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0ij7zp7" sourceRef="Event_1i31vw5" targetRef="Event_0g2jpxr" />
+    <bpmn:sequenceFlow id="Flow_0ij7zp7" sourceRef="Event_1i31vw5" targetRef="rejestracja-odwolania" />
     <bpmn:intermediateCatchEvent id="Event_0g2jpxr" name="Odebranie wyniku odwołania">
       <bpmn:extensionElements>
         <zeebe:ioMapping>
           <zeebe:output source="=decyzja" target="decyzja" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0ij7zp7</bpmn:incoming>
+      <bpmn:incoming>Flow_11jwlsc</bpmn:incoming>
       <bpmn:outgoing>Flow_0wdwmn9</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1ev0ipc" messageRef="Message_1fova35" />
     </bpmn:intermediateCatchEvent>
@@ -258,6 +259,14 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_0w5iwpu" sourceRef="Gateway_0iregj8" targetRef="Activity_07voo3u" />
     <bpmn:sequenceFlow id="Flow_0wdwmn9" sourceRef="Event_0g2jpxr" targetRef="Gateway_0iregj8" />
+    <bpmn:sequenceFlow id="Flow_11jwlsc" sourceRef="rejestracja-odwolania" targetRef="Event_0g2jpxr" />
+    <bpmn:serviceTask id="rejestracja-odwolania" name="Rejestracja odwołania">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="rejestracja-odwolania" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0ij7zp7</bpmn:incoming>
+      <bpmn:outgoing>Flow_11jwlsc</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmn:error id="Error_1v6u2pq" name="OplataError" errorCode="OplataKwotaErrCode" />
   <bpmn:error id="Error_0mr2wja" name="OplataError" errorCode="OplataKwotaErrCode" />
@@ -328,13 +337,6 @@
           <dc:Bounds x="1050" y="313" width="59" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0e86b92_di" bpmnElement="Activity_07voo3u">
-        <dc:Bounds x="1580" y="117" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0iregj8_di" bpmnElement="Gateway_0iregj8" isMarkerVisible="true" bioc:stroke="#5b176d" bioc:fill="#e1bee7" color:background-color="#e1bee7" color:border-color="#5b176d">
-        <dc:Bounds x="1465" y="132" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0e5fvjl_di" bpmnElement="Activity_0e5fvjl" isExpanded="true">
         <dc:Bounds x="1060" y="470" width="370" height="220" />
         <bpmndi:BPMNLabel />
@@ -393,6 +395,17 @@
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1917" y="285" width="51" height="27" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0e86b92_di" bpmnElement="Activity_07voo3u">
+        <dc:Bounds x="1580" y="117" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0iregj8_di" bpmnElement="Gateway_0iregj8" isMarkerVisible="true" bioc:stroke="#5b176d" bioc:fill="#e1bee7" color:background-color="#e1bee7" color:border-color="#5b176d">
+        <dc:Bounds x="1465" y="132" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0egkxtv_di" bpmnElement="rejestracja-odwolania">
+        <dc:Bounds x="1730" y="220" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0wm2ye9_di" bpmnElement="dziekanat-deadline">
         <dc:Bounds x="642" y="549" width="36" height="36" />
@@ -522,7 +535,7 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0ij7zp7_di" bpmnElement="Flow_0ij7zp7">
         <di:waypoint x="1922" y="260" />
-        <di:waypoint x="1648" y="260" />
+        <di:waypoint x="1830" y="260" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0w5iwpu_di" bpmnElement="Flow_0w5iwpu">
         <di:waypoint x="1515" y="157" />
@@ -532,6 +545,10 @@
         <di:waypoint x="1612" y="260" />
         <di:waypoint x="1490" y="260" />
         <di:waypoint x="1490" y="182" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11jwlsc_di" bpmnElement="Flow_11jwlsc">
+        <di:waypoint x="1730" y="260" />
+        <di:waypoint x="1648" y="260" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
