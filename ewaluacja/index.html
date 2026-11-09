@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ewaluacja projektu Camunda</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #e1e4ea;
+    --accent: #2f5bd3; --accent-soft: #e8eefc;
+    --miss: #b42318; --miss-soft: #fdecea; --ok: #18794e; --ok-soft: #e6f4ec; --extra: #8a4b00; --extra-soft: #fff3e0;
+    --info: #6941c6; --info-soft: #f1ecfb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #13161c; --card: #1c2029; --text: #e6e8ec; --muted: #9aa3b2; --line: #2d3340;
+      --accent: #7c9bff; --accent-soft: #232c45;
+      --miss: #ff8a80; --miss-soft: #3a1f1f; --ok: #6fd3a0; --ok-soft: #173126; --extra: #ffb86b; --extra-soft: #35281a;
+      --info: #b9a2ff; --info-soft: #2a2340;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  h3 { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 6px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button, .btn { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  button.primary, .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:hover, .btn:hover { filter: brightness(0.97); }
+  input[type=file] { display: none; }
+  .drop { border: 2px dashed var(--line); border-radius: 12px; padding: 26px; text-align: center; color: var(--muted); margin-bottom: 12px; transition: .15s; }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+  .files { list-style: none; padding: 0; margin: 10px 0 0; font-size: 14px; }
+  .files li { display: flex; gap: 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--line); }
+  .files li:last-child { border-bottom: 0; }
+  .files .path { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+  .files .tag { font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+  .files .note { font-size: 12px; color: var(--extra); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .tile .v { font-size: 30px; font-weight: 650; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .tile .l { color: var(--muted); font-size: 13px; }
+  .tile.grade .v { color: var(--accent); }
+  .tile.miss .v { color: var(--miss); } .tile.extra .v { color: var(--extra); } .tile.ok .v { color: var(--ok); }
+  .bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin-top: 8px; }
+  .bar > span { display: block; height: 100%; background: var(--accent); }
+  .feat { display: grid; grid-template-columns: 1fr; padding: 7px 10px; border-radius: 8px; margin: 4px 0; }
+  .feat.miss { background: var(--miss-soft); } .feat.extra { background: var(--extra-soft); } .feat.ok { background: var(--ok-soft); }
+  .feat.unscored { opacity: .75; }
+  .feat .name { font-weight: 550; }
+  .feat .badge { font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 6px; background: var(--info-soft); color: var(--info); margin-left: 6px; }
+  .feat details { font-size: 13px; color: var(--muted); }
+  .feat summary { cursor: pointer; }
+  .feat ul { margin: 4px 0 2px; padding-left: 18px; }
+  .feat li { overflow-wrap: anywhere; }
+  .empty { color: var(--muted); font-style: italic; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tabs button[aria-selected=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .problems li { margin: 4px 0; overflow-wrap: anywhere; }
+  .problems .f { color: var(--muted); font-size: 12px; }
+  details.teacher > summary { cursor: pointer; font-weight: 600; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .hidden { display: none !important; }
+  @media print {
+    body { background: #fff; } .noprint { display: none !important; } .card, .tile { border-color: #ccc; break-inside: avoid; }
+    .feat details { display: block; } .tab-panel { display: block !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ewaluacja projektu Camunda</h1>
+  <p class="lead">Wczytaj pliki swojego projektu (<code>.bpmn</code>, <code>.dmn</code>, <code>.form</code> lub archiwum <code>.zip</code>). Strona porówna użyte konstrukcje z projektem wzorcowym na ocenę 5,0 i pokaże, których brakuje, a które są dodatkowe. Pliki nie są nigdzie wysyłane — analiza odbywa się w przeglądarce.</p>
+
+  <section class="card noprint">
+    <h2>Projekt studenta</h2>
+    <div id="drop" class="drop">Przeciągnij tutaj pliki, folder <code>src/main/resources</code> lub archiwum ZIP</div>
+    <div class="row">
+      <label class="btn primary" for="inFiles">Wybierz pliki…</label>
+      <input id="inFiles" type="file" multiple accept=".bpmn,.dmn,.form,.zip,.xml,.json">
+      <label class="btn" for="inDir">Wybierz folder…</label>
+      <input id="inDir" type="file" webkitdirectory multiple>
+      <button id="btnClear" type="button">Wyczyść</button>
+      <span class="muted" id="stuInfo"></span>
+    </div>
+    <ul class="files" id="stuFiles"></ul>
+  </section>
+
+  <section id="results" class="hidden">
+    <div class="tiles">
+      <div class="tile grade"><div class="v" id="tGrade">—</div><div class="l">Sugerowana ocena</div></div>
+      <div class="tile"><div class="v" id="tPct">0%</div><div class="l">Pokrycie konstrukcji wzorca</div><div class="bar"><span id="tBar" style="width:0"></span></div></div>
+      <div class="tile miss"><div class="v" id="tMiss">0</div><div class="l">Brakujące konstrukcje</div></div>
+      <div class="tile extra"><div class="v" id="tExtra">0</div><div class="l">Dodatkowe konstrukcje</div></div>
+    </div>
+
+    <div class="card">
+      <div class="tabs noprint" role="tablist">
+        <button type="button" role="tab" data-tab="miss" aria-selected="true">Brakujące <span id="cMiss"></span></button>
+        <button type="button" role="tab" data-tab="extra" aria-selected="false">Dodatkowe <span id="cExtra"></span></button>
+        <button type="button" role="tab" data-tab="ok" aria-selected="false">Zgodne ze wzorcem <span id="cOk"></span></button>
+        <button type="button" role="tab" data-tab="problems" aria-selected="false">Uwagi techniczne <span id="cProb"></span></button>
+        <button type="button" role="tab" data-tab="size" aria-selected="false">Rozmiar projektu</button>
+        <button type="button" class="noprint" id="btnPrint" style="margin-left:auto">Drukuj / PDF</button>
+      </div>
+      <div class="tab-panel" data-panel="miss"><div id="pMiss"></div></div>
+      <div class="tab-panel hidden" data-panel="extra"><div id="pExtra"></div></div>
+      <div class="tab-panel hidden" data-panel="ok"><div id="pOk"></div></div>
+      <div class="tab-panel hidden" data-panel="problems"><div id="pProb"></div></div>
+      <div class="tab-panel hidden" data-panel="size"><div id="pSize"></div></div>
+    </div>
+    <p class="muted">Ocena liczona jest wyłącznie z obecności konstrukcji wzorca (liczba wystąpień nie ma znaczenia). Konstrukcje dodatkowe nie wpływają na wynik — służą do oceny przez prowadzącego. Progi: <span id="progi"></span>.</p>
+  </section>
+
+  <section class="card noprint">
+    <details class="teacher">
+      <summary>Wzorzec (dla prowadzącego)</summary>
+      <p class="muted" id="refInfo"></p>
+      <div class="row">
+        <label class="btn" for="inRef">Wczytaj inny wzorzec…</label>
+        <input id="inRef" type="file" multiple accept=".bpmn,.dmn,.form,.zip">
+        <button id="btnRefReset" type="button">Przywróć wzorzec domyślny</button>
+      </div>
+      <ul class="files" id="refFiles"></ul>
+      <h3>Konstrukcje wzorca</h3>
+      <div id="refFeatures"></div>
+    </details>
+  </section>
+</main>
+
+<script src="wzorzec.js"></script>
+<script src="konfiguracja.js"></script>
+<script src="analizator.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
