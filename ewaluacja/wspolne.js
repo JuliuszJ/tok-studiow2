@@ -118,15 +118,44 @@
     return `<ul>${items}${more}</ul>`;
   }
   // Grupuje wiersze { group, label, ... } wg kolejności grup analizatora; rowHtml(r) zwraca HTML jednego wiersza.
-  function groupedRows(rows, rowHtml) {
+  // opts.collapsed (Set nazw grup) włącza zwijane grupy; opts.groupInfo(g, rows) dodaje tekst w nagłówku grupy.
+  function groupedRows(rows, rowHtml, opts) {
     if (!rows.length) return '<p class="empty">Brak pozycji.</p>';
     const order0 = global.Analizator.GROUP_ORDER;
     const groups = new Map();
     rows.forEach(r => { if (!groups.has(r.group)) groups.set(r.group, []); groups.get(r.group).push(r); });
     const order = order0.filter(g => groups.has(g)).concat([...groups.keys()].filter(g => !order0.includes(g)));
-    return order.map(g => `<h3>${esc(g)}</h3>` +
-      groups.get(g).sort((a, b) => a.label.localeCompare(b.label, 'pl')).map(rowHtml).join('')).join('');
+    return order.map(g => {
+      const list = groups.get(g).sort((a, b) => a.label.localeCompare(b.label, 'pl'));
+      const body = list.map(rowHtml).join('');
+      if (!opts || !opts.collapsed) return `<h3>${esc(g)}</h3>` + body;
+      const info = opts.groupInfo ? opts.groupInfo(g, list) : `${list.length}`;
+      return `<details class="fgroup" data-group="${esc(g)}"${opts.collapsed.has(g) ? '' : ' open'}>` +
+        `<summary><h3>${esc(g)}</h3><span class="ginfo">${info}</span></summary>${body}</details>`;
+    }).join('');
   }
 
-  global.Wspolne = { SUPPORTED, esc, readZip, collect, filesFromDrop, normalizeWzorzec, parseWzorzecJs, serializeWzorzec, occList, groupedRows };
+  // Zwijane grupy: zapamiętywanie stanu (localStorage, jeśli dostępny) i przyciski „zwiń/rozwiń wszystkie”.
+  function collapsibleGroups(container, storageKey, onChange) {
+    let collapsed;
+    try { collapsed = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]')); } catch (e) { collapsed = new Set(); }
+    const persist = () => { try { localStorage.setItem(storageKey, JSON.stringify([...collapsed])); } catch (e) { /* brak dostępu */ } };
+    container.addEventListener('toggle', (e) => {
+      const d = e.target;
+      if (!d.classList || !d.classList.contains('fgroup')) return;
+      if (d.open) collapsed.delete(d.dataset.group); else collapsed.add(d.dataset.group);
+      persist();
+    }, true);
+    const setAll = (open) => {
+      container.querySelectorAll('details.fgroup').forEach(d => {
+        d.open = open;
+        if (open) collapsed.delete(d.dataset.group); else collapsed.add(d.dataset.group);
+      });
+      persist();
+      if (onChange) onChange();
+    };
+    return { collapsed, expandAll: () => setAll(true), collapseAll: () => setAll(false) };
+  }
+
+  global.Wspolne = { SUPPORTED, esc, readZip, collect, filesFromDrop, normalizeWzorzec, parseWzorzecJs, serializeWzorzec, occList, groupedRows, collapsibleGroups };
 })(window);

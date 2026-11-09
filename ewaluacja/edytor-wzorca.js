@@ -11,6 +11,7 @@
   let dirty = false;
   let analysis = null;
 
+  const groups = W.collapsibleGroups($('features'), 'edytor-wzorca.zwiniete');
   const setDirty = (v) => { dirty = v; $('dirty').classList.toggle('hidden', !v); };
 
   function renderFiles() {
@@ -24,6 +25,15 @@
       : '';
   }
 
+  const groupInfo = (g, list) => {
+    const n = list.filter(r => skip.has(r.key)).length;
+    return `${list.length} konstrukcji` + (n ? ` · pominiętych ${n}` : '');
+  };
+  function refreshGroupInfo(groupEl) {
+    const keys = [...groupEl.querySelectorAll('input[data-key]')].map(i => ({ key: i.dataset.key }));
+    groupEl.querySelector('.ginfo').textContent = groupInfo(groupEl.dataset.group, keys);
+  }
+
   function renderFeatures() {
     const rows = [...analysis.features.values()].map(f => ({ key: f.key, group: f.group, label: f.label, ref: f.occ }));
     $('features').innerHTML = W.groupedRows(rows, r => {
@@ -33,7 +43,7 @@
         `<input type="checkbox" id="${id}" data-key="${esc(r.key)}" ${s ? 'checked' : ''}>` +
         `<label for="${id}"><span class="name">${esc(r.label)}</span><span class="key">${esc(r.key)}</span></label></div>` +
         `<details><summary>Gdzie we wzorcu (${r.ref.length})</summary>${W.occList(r.ref)}</details></div>`;
-    });
+    }, { collapsed: groups.collapsed, groupInfo });
     const stale = [...skip].filter(k => !analysis.features.has(k));
     $('stale').innerHTML = stale.length
       ? `<p class="muted">Pominięte klucze nieobecne w obecnych plikach (zostaną zachowane): ${stale.map(esc).join(', ')} <button type="button" id="btnStale">Usuń je z listy</button></p>`
@@ -190,6 +200,8 @@
     const row = e.target.closest('.feat');
     row.classList.toggle('skipped', e.target.checked);
     row.classList.toggle('ok', !e.target.checked);
+    const g = row.closest('details.fgroup');
+    if (g) refreshGroupInfo(g);
     setDirty(true);
     updateSummary();
   });
@@ -223,6 +235,8 @@
     if (f) await loadJsFile(f);
   });
   $('btnOpen').addEventListener('click', openJs);
+  $('btnExpand').addEventListener('click', groups.expandAll);
+  $('btnCollapse').addEventListener('click', groups.collapseAll);
   $('btnCopyPath').addEventListener('click', async () => {
     if (!(await copyPath())) $('copyInfo').textContent = 'nie udało się skopiować — zaznacz ścieżkę ręcznie';
   });

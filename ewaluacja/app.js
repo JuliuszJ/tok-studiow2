@@ -42,14 +42,16 @@
     });
   }
 
-  function featureRows(rows, kind) {
+  const refGroups = W.collapsibleGroups($('refFeatures'), 'index.wzorzec.zwiniete');
+
+  function featureRows(rows, kind, opts) {
     const where = kind === 'miss' ? 'Gdzie we wzorcu' : kind === 'ref' ? 'Gdzie we wzorcu' : 'Gdzie w projekcie';
     const cls = kind === 'ref' ? 'ok' : kind;
     return W.groupedRows(rows, r => {
       const occ = kind === 'miss' || kind === 'ref' ? r.ref : r.stu;
       return `<div class="feat ${cls}"><div class="name" title="${esc(r.key)}">${esc(r.label)}</div>` +
         `<details><summary>${where} (${occ.length})</summary>${W.occList(occ)}</details></div>`;
-    });
+    }, opts);
   }
 
   function renderRef(refRes) {
@@ -60,7 +62,7 @@
     $('refInfo').textContent = `${state.ref.name} — ${state.ref.files.length} plików, ${rows.length} konstrukcji liczonych` +
       (skipped ? `, ${skipped} pominiętych (ustawienia w edytorze wzorca).` : '.');
     fileList($('refFiles'), state.ref.files, false);
-    $('refFeatures').innerHTML = featureRows(rows, 'ref');
+    $('refFeatures').innerHTML = featureRows(rows, 'ref', { collapsed: refGroups.collapsed, groupInfo: (g, l) => `${l.length} konstrukcji` });
   }
 
   function render() {

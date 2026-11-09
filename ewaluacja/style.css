@@ -76,3 +76,12 @@
   .dirty { color: var(--extra); font-size: 13px; }
   input[type=text] { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); min-width: 0; flex: 1 1 260px; }
   .files button.rm { padding: 2px 8px; margin-left: auto; font-size: 12px; }
+  /* zwijane grupy konstrukcji */
+  details.fgroup { border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  details.fgroup > summary { cursor: pointer; display: flex; align-items: baseline; gap: 10px; list-style: none; padding: 4px 0; }
+  details.fgroup > summary::-webkit-details-marker { display: none; }
+  details.fgroup > summary::before { content: '▸'; color: var(--muted); width: 12px; transition: transform .15s; }
+  details.fgroup[open] > summary::before { transform: rotate(90deg); }
+  details.fgroup > summary h3 { margin: 10px 0 4px; }
+  details.fgroup .ginfo { color: var(--muted); font-size: 13px; }
+  @media print { details.fgroup > summary::before { display: none; } }
