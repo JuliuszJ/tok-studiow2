@@ -1,16 +1,13 @@
 package pl.dziekanat.zaliczenie_semestru_srv;
-
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class WorkersTest {
     @Test
-    public void rejestracjaOdwolania(){
+    public void rejestracjaOdwolaniaTest(){
         Workers workers = new Workers();
         Map<String, Object> podanieIn = new HashMap<>(Map.of(
                 "nrAlbumu", "007",
