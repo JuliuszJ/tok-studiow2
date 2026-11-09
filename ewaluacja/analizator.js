@@ -540,31 +540,45 @@
 
   // ---------- porównanie ----------
   // pomijane: klucze konstrukcji całkowicie pomijanych (nie są pokazywane, liczone ani raportowane jako dodatkowe)
-  // wagi: { klucz: waga } — brak wpisu = 1; pokrycie = suma wag obecnych / suma wag wszystkich liczonych
-  function compare(ref, stu, cfg, pomijane, wagi) {
+  // punkty: { klucz: punkty } — brak wpisu = 1 pkt; wynik = punkty za obecne konstrukcje / suma punktów wzorca
+  function compare(ref, stu, cfg, pomijane, punkty) {
     const skip = new Set(pomijane || []);
-    const w = (k) => (wagi && Object.prototype.hasOwnProperty.call(wagi, k) ? wagi[k] : 1);
+    const p = (k) => (punkty && Object.prototype.hasOwnProperty.call(punkty, k) ? punkty[k] : 1);
     const missing = [], common = [], extra = [];
     ref.features.forEach((f, k) => {
       if (skip.has(k)) return;
       const s = stu.features.get(k);
-      const row = { key: k, group: f.group, label: f.label, ref: f.occ, stu: s ? s.occ : [], waga: w(k) };
+      const row = { key: k, group: f.group, label: f.label, ref: f.occ, stu: s ? s.occ : [], punkty: p(k) };
       (s ? common : missing).push(row);
     });
     stu.features.forEach((f, k) => {
       if (!ref.features.has(k) && !skip.has(k)) extra.push({ key: k, group: f.group, label: f.label, ref: [], stu: f.occ });
     });
-    const sum = (rows) => Math.round(10 * rows.reduce((a, r) => a + r.waga, 0)) / 10;
-    const scoredTotal = missing.length + common.length;
-    const scoredHit = common.length;
-    const weightTotal = sum(missing) + sum(common);
-    const weightHit = sum(common);
-    const pct = weightTotal ? Math.round(1000 * weightHit / weightTotal) / 10 : 0;
-    const progi = (cfg && cfg.progi) || [];
-    const grade = (progi.find(p => pct >= p.min) || { ocena: '—' }).ocena;
-    const weighted = missing.concat(common).some(r => r.waga !== 1);
-    return { missing, common, extra, pct, grade, scoredTotal, scoredHit, weightTotal, weightHit, weighted };
+    const sum = (rows) => Math.round(10 * rows.reduce((a, r) => a + r.punkty, 0)) / 10;
+    const res = {
+      missing, common, extra,
+      scoredTotal: missing.length + common.length,
+      scoredHit: common.length,
+      pointsTotal: sum(missing) + sum(common),
+      pointsHit: sum(common),
+    };
+    return Object.assign(res, score(res, 0, cfg));
   }
 
-  global.Analizator = { analyze, compare, classify, GROUP_ORDER };
+  // Wynik: (punkty za konstrukcje wzorca + punkty za dodatkowe + maks. pkt za testy × pokrycie %)
+  //        / (suma punktów wzorca + maks. pkt za testy), najwyżej 100%.
+  // tests = { max: maks. punkty za testy, pct: pokrycie testami 0–100 }
+  function score(cmp, extraPoints, cfg, tests) {
+    const r1 = (n) => Math.round(10 * n) / 10;
+    const tMax = (tests && tests.max) || 0;
+    const tPts = r1(tMax * Math.min(100, Math.max(0, (tests && tests.pct) || 0)) / 100);
+    const total = r1(cmp.pointsTotal + tMax);
+    const got = r1(cmp.pointsHit + (extraPoints || 0) + tPts);
+    const pct = total ? Math.min(100, Math.round(1000 * got / total) / 10) : 0;
+    const progi = (cfg && cfg.progi) || [];
+    const grade = (progi.find(x => pct >= x.min) || { ocena: '—' }).ocena;
+    return { pct, grade, pointsGot: got, pointsMax: total, pointsTests: tPts };
+  }
+
+  global.Analizator = { analyze, compare, score, classify, GROUP_ORDER };
 })(window);

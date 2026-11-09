@@ -1,6 +1,6 @@
 // Wzorzec projektu dla strony ewaluacji (index.html).
 // Edytuj za pomocą edytor-wzorca.html albo wygeneruj: node ewaluacja/narzedzia/generuj-wzorzec.mjs
-// Zapisano: 2026-11-09T17:42:44.921Z
+// Zapisano: 2026-11-09T17:58:46.031Z
 window.WZORZEC = {
  "nazwa": "Projekt wzorcowy: Zaliczenie semestru",
  "pomijane": [
@@ -50,7 +50,8 @@ window.WZORZEC = {
   "timer.timeDuration",
   "user.camunda"
  ],
- "wagi": {},
+ "punkty": {},
+ "testyPunkty": 2,
  "pliki": [
   {
    "name": "ZaliczenieSemestru.bpmn",

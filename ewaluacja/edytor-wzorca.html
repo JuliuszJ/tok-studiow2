@@ -63,13 +63,24 @@
   </section>
 
   <section class="card">
+    <h2>Pokrycie testami</h2>
+    <div class="row">
+      <label for="testyPkt">Maksymalne punkty za pokrycie testami</label>
+      <span class="pktbox"><input type="text" class="pkt" id="testyPkt" value="0,0" inputmode="decimal" maxlength="4"
+        title="Punkty w formacie 99,9 (0,0–99,9); 0,0 = testy nie są punktowane"><label for="testyPkt">pkt</label></span>
+    </div>
+    <p class="muted">Student otrzymuje: maksymalne punkty × pokrycie testami (%), wpisywane na stronie ewaluacji.
+      Te punkty doliczają się także do sumy punktów wzorca. 0,0 = testy nie są punktowane.</p>
+  </section>
+
+  <section class="card">
     <h2>Konstrukcje wzorca</h2>
     <div class="row" style="margin-bottom:6px">
       <button type="button" id="btnNone">Uwzględnij wszystkie</button>
       <button type="button" id="btnAll">Pomiń wszystkie</button>
       <button type="button" id="btnExpand">Rozwiń grupy</button>
       <button type="button" id="btnCollapse">Zwiń grupy</button>
-      <span class="muted">Zaznaczone pole = konstrukcja pomijana. Waga w formacie 99,9 (0,0–99,9, domyślnie 1,0) — pokrycie liczone jest jako suma wag obecnych konstrukcji do sumy wag wszystkich liczonych.</span>
+      <span class="muted">Zaznaczone pole = konstrukcja pomijana. Punkty w formacie 99,9 (0,0–99,9, domyślnie 1,0) — wynik studenta to suma punktów za obecne konstrukcje (plus punkty przyznane za dodatkowe) do sumy punktów wszystkich liczonych.</span>
     </div>
     <div id="stale"></div>
     <div id="features"></div>

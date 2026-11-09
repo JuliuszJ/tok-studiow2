@@ -28,9 +28,18 @@
   <section id="results" class="hidden">
     <div class="tiles">
       <div class="tile grade"><div class="v" id="tGrade">—</div><div class="l">Sugerowana ocena</div></div>
-      <div class="tile"><div class="v" id="tPct">0%</div><div class="l" id="tPctLabel">Pokrycie konstrukcji wzorca</div><div class="bar"><span id="tBar" style="width:0"></span></div></div>
+      <div class="tile"><div class="v" id="tPct">0%</div><div class="l">Wynik punktowy</div><div class="l" id="tPts"></div><div class="bar"><span id="tBar" style="width:0"></span></div></div>
       <div class="tile miss"><div class="v" id="tMiss">0</div><div class="l">Brakujące konstrukcje</div></div>
       <div class="tile extra"><div class="v" id="tExtra">0</div><div class="l">Dodatkowe konstrukcje</div></div>
+    </div>
+
+    <div class="card testcard">
+      <div class="row">
+        <label for="inTest"><b>Pokrycie testami</b></label>
+        <span class="pktbox"><input type="text" class="pkt" id="inTest" value="0,0" inputmode="decimal" maxlength="5"
+          title="Pokrycie testami w procentach, format 99,9 (0,0–100,0)"><label for="inTest">%</label></span>
+        <span class="muted" id="testInfo"></span>
+      </div>
     </div>
 
     <div class="card">
@@ -48,7 +57,7 @@
       <div class="tab-panel hidden" data-panel="problems"><div id="pProb"></div></div>
       <div class="tab-panel hidden" data-panel="size"><div id="pSize"></div></div>
     </div>
-    <p class="muted">Ocena liczona jest wyłącznie z obecności konstrukcji wzorca (liczba wystąpień nie ma znaczenia); każda konstrukcja liczy się ze swoją wagą (domyślnie 1,0). Konstrukcje dodatkowe nie wpływają na wynik — służą do oceny przez prowadzącego. Progi: <span id="progi"></span>.</p>
+    <p class="muted">Wynik = punkty za konstrukcje wzorca obecne w projekcie (liczba wystąpień nie ma znaczenia; domyślnie 1,0 pkt za konstrukcję) plus punkty przyznane za konstrukcje dodatkowe, plus punkty za testy (maks. punkty za testy × pokrycie testami), podzielone przez sumę punktów wzorca z punktami za testy — najwyżej 100%. Progi: <span id="progi"></span>.</p>
   </section>
 
   <section class="card noprint">

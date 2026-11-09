@@ -85,26 +85,34 @@
   }
 
   // ---------- wzorzec.js ----------
-  // Format: window.WZORZEC = { nazwa, pomijane: [klucz, ...], wagi: { klucz: liczba }, pliki: [{name, content}] };
-  // Wagi: 0,0–99,9 z jednym miejscem po przecinku; brak wpisu = waga domyślna 1,0.
-  const WAGA_DOMYSLNA = 1;
-  const WAGA_MAX = 99.9;
-  const roundWaga = (n) => Math.round(n * 10) / 10;
+  // Format: window.WZORZEC = { nazwa, pomijane: [klucz, ...], punkty: { klucz: liczba }, testyPunkty: liczba, pliki: [{name, content}] };
+  // Punkty: 0,0–99,9 z jednym miejscem po przecinku; brak wpisu = domyślnie 1,0 pkt.
+  // (Starsze pliki zapisywały to samo pod nazwą „wagi” — są nadal odczytywane.)
+  const PUNKTY_DOMYSLNE = 1;
+  const PUNKTY_MAX = 99.9;
+  const roundPkt = (n) => Math.round(n * 10) / 10;
   // "2,5" / "2.5" / "2" -> 2.5; niepoprawny tekst -> null
-  function parseWaga(s) {
+  function parsePunkty(s) {
     const t = String(s).trim().replace('.', ',');
     if (!/^\d{1,2}(,\d)?$/.test(t)) return null;
-    const n = roundWaga(parseFloat(t.replace(',', '.')));
-    return n >= 0 && n <= WAGA_MAX ? n : null;
+    const n = roundPkt(parseFloat(t.replace(',', '.')));
+    return n >= 0 && n <= PUNKTY_MAX ? n : null;
   }
-  const formatWaga = (n) => roundWaga(n).toFixed(1).replace('.', ',');
-  const waga = (wagi, key) => (wagi && Object.prototype.hasOwnProperty.call(wagi, key) ? wagi[key] : WAGA_DOMYSLNA);
+  const formatPunkty = (n) => roundPkt(n).toFixed(1).replace('.', ',');
+  // Pokrycie testami w procentach: "87,5" / "87.5" / "100" -> 87.5; niepoprawny tekst -> null
+  function parseProcent(s) {
+    const t = String(s).trim().replace(/\s*%$/, '').replace('.', ',');
+    if (!/^\d{1,3}(,\d)?$/.test(t)) return null;
+    const n = roundPkt(parseFloat(t.replace(',', '.')));
+    return n >= 0 && n <= 100 ? n : null;
+  }
+  const punkty = (map, key) => (map && Object.prototype.hasOwnProperty.call(map, key) ? map[key] : PUNKTY_DOMYSLNE);
 
-  function normalizeWagi(w) {
+  function normalizePunkty(w) {
     const out = {};
     if (w && typeof w === 'object') Object.keys(w).sort().forEach(k => {
       const n = Number(w[k]);
-      if (Number.isFinite(n) && n >= 0 && n <= WAGA_MAX && roundWaga(n) !== WAGA_DOMYSLNA) out[k] = roundWaga(n);
+      if (Number.isFinite(n) && n >= 0 && n <= PUNKTY_MAX && roundPkt(n) !== PUNKTY_DOMYSLNE) out[k] = roundPkt(n);
     });
     return out;
   }
@@ -114,7 +122,10 @@
       nazwa: w.nazwa || 'Wzorzec',
       pliki: Array.isArray(w.pliki) ? w.pliki.filter(f => f && f.name && typeof f.content === 'string') : [],
       pomijane: Array.isArray(w.pomijane) ? w.pomijane.filter(k => typeof k === 'string') : [],
-      wagi: normalizeWagi(w.wagi),
+      punkty: normalizePunkty(w.punkty || w.wagi),
+      // maksymalna liczba punktów za pokrycie testami (student dostaje: maks. × pokrycie %)
+      testyPunkty: Number.isFinite(Number(w.testyPunkty)) && Number(w.testyPunkty) >= 0 && Number(w.testyPunkty) <= PUNKTY_MAX
+        ? roundPkt(Number(w.testyPunkty)) : 0,
     };
   }
   // Odczyt pliku wzorzec.js bez wykonywania kodu: wycinamy literał JSON.
@@ -130,7 +141,7 @@
     return '// Wzorzec projektu dla strony ewaluacji (index.html).\n' +
       '// Edytuj za pomocą edytor-wzorca.html albo wygeneruj: node ewaluacja/narzedzia/generuj-wzorzec.mjs\n' +
       '// Zapisano: ' + new Date().toISOString() + '\n' +
-      'window.WZORZEC = ' + JSON.stringify({ nazwa: data.nazwa, pomijane: data.pomijane, wagi: data.wagi, pliki: data.pliki }, null, 1) + ';\n';
+      'window.WZORZEC = ' + JSON.stringify({ nazwa: data.nazwa, pomijane: data.pomijane, punkty: data.punkty, testyPunkty: data.testyPunkty, pliki: data.pliki }, null, 1) + ';\n';
   }
 
   // ---------- widok konstrukcji ----------
@@ -181,5 +192,5 @@
   }
 
   global.Wspolne = { SUPPORTED, esc, readZip, collect, filesFromDrop, normalizeWzorzec, parseWzorzecJs, serializeWzorzec, occList, groupedRows, collapsibleGroups,
-    WAGA_DOMYSLNA, parseWaga, formatWaga, waga, normalizeWagi };
+    PUNKTY_DOMYSLNE, parsePunkty, formatPunkty, punkty, normalizePunkty, roundPkt, parseProcent };
 })(window);

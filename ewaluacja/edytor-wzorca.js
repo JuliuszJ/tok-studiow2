@@ -8,7 +8,7 @@
 
   let wz = W.normalizeWzorzec(window.WZORZEC || { nazwa: 'Wzorzec', pliki: [], pomijane: [] });
   let skip = new Set(wz.pomijane);
-  let wagi = { ...wz.wagi };          // tylko wagi różne od 1,0
+  let punkty = { ...wz.punkty };      // tylko punkty różne od 1,0
   let dirty = false;
   let analysis = null;
 
@@ -26,10 +26,10 @@
       : '';
   }
 
-  const sumWag = (keys) => keys.filter(k => !skip.has(k)).reduce((a, k) => a + W.waga(wagi, k), 0);
+  const sumPkt = (keys) => keys.filter(k => !skip.has(k)).reduce((a, k) => a + W.punkty(punkty, k), 0);
   const groupInfo = (g, list) => {
     const n = list.filter(r => skip.has(r.key)).length;
-    return `${list.length} konstrukcji · suma wag ${W.formatWaga(sumWag(list.map(r => r.key)))}` + (n ? ` · pominiętych ${n}` : '');
+    return `${list.length} konstrukcji · ${W.formatPunkty(sumPkt(list.map(r => r.key)))} pkt` + (n ? ` · pominiętych ${n}` : '');
   };
   function refreshGroupInfo(groupEl) {
     const keys = [...groupEl.querySelectorAll('input[data-key]')].map(i => ({ key: i.dataset.key }));
@@ -41,13 +41,13 @@
     $('features').innerHTML = W.groupedRows(rows, r => {
       const id = 'k_' + r.key.replace(/[^a-zA-Z0-9_-]/g, '_');
       const s = skip.has(r.key);
-      const wv = W.waga(wagi, r.key);
+      const pv = W.punkty(punkty, r.key);
       return `<div class="feat ${s ? 'skipped' : 'ok'}" data-row="${esc(r.key)}"><div class="head">` +
         `<input type="checkbox" id="${id}" data-key="${esc(r.key)}" ${s ? 'checked' : ''}>` +
         `<label for="${id}"><span class="name">${esc(r.label)}</span><span class="key">${esc(r.key)}</span></label>` +
-        `<span class="wagabox"><label for="w_${id}">waga</label><input type="text" class="waga${wv !== W.WAGA_DOMYSLNA ? ' changed' : ''}" id="w_${id}" ` +
-        `data-waga="${esc(r.key)}" value="${W.formatWaga(wv)}" inputmode="decimal" maxlength="4" ${s ? 'disabled' : ''} ` +
-        `title="Waga w formacie 99,9 (0,0–99,9), domyślnie 1,0"></span></div>` +
+        `<span class="pktbox"><input type="text" class="pkt${pv !== W.PUNKTY_DOMYSLNE ? ' changed' : ''}" id="p_${id}" ` +
+        `data-pkt="${esc(r.key)}" value="${W.formatPunkty(pv)}" inputmode="decimal" maxlength="4" ${s ? 'disabled' : ''} ` +
+        `title="Punkty w formacie 99,9 (0,0–99,9), domyślnie 1,0"><label for="p_${id}">pkt</label></span></div>` +
         `<details><summary>Gdzie we wzorcu (${r.ref.length})</summary>${W.occList(r.ref)}</details></div>`;
     }, { collapsed: groups.collapsed, groupInfo });
     const stale = [...skip].filter(k => !analysis.features.has(k));
@@ -62,13 +62,16 @@
     const total = analysis.features.size;
     const skipped = [...analysis.features.keys()].filter(k => skip.has(k)).length;
     $('summary').textContent = `${wz.pliki.length} plików · ${total} konstrukcji · pominiętych ${skipped} · liczonych ${total - skipped}` +
-      ` · suma wag liczonych ${W.formatWaga(sumWag([...analysis.features.keys()]))}` +
-      ` · suma wszystkich wag ${W.formatWaga([...analysis.features.keys()].reduce((a, k) => a + W.waga(wagi, k), 0))}`;
+      ` · punkty liczonych ${W.formatPunkty(sumPkt([...analysis.features.keys()]))}` +
+      (wz.testyPunkty ? ` + testy ${W.formatPunkty(wz.testyPunkty)}` : '') +
+      ` · punkty wszystkich ${W.formatPunkty([...analysis.features.keys()].reduce((a, k) => a + W.punkty(punkty, k), 0))}`;
   }
 
   function render() {
     analysis = A.analyze(wz.pliki);
     $('nazwa').value = wz.nazwa;
+    $('testyPkt').value = W.formatPunkty(wz.testyPunkty);
+    $('testyPkt').classList.toggle('changed', wz.testyPunkty > 0);
     renderFiles();
     renderFeatures();
   }
@@ -166,7 +169,7 @@
     try {
       wz = W.parseWzorzecJs(await f.text());
       skip = new Set(wz.pomijane);
-      wagi = { ...wz.wagi };
+      punkty = { ...wz.punkty };
       setDirty(false);
       render();
     } catch (err) { alert('Nie udało się wczytać ' + f.name + ': ' + err.message); }
@@ -175,7 +178,7 @@
   async function save() {
     wz.nazwa = $('nazwa').value.trim() || 'Wzorzec';
     wz.pomijane = [...skip].sort();
-    wz.wagi = W.normalizeWagi(wagi);
+    wz.punkty = W.normalizePunkty(punkty);
     const text = W.serializeWzorzec(wz);
     if (FS_API) {
       try {
@@ -210,31 +213,44 @@
     const row = e.target.closest('.feat');
     row.classList.toggle('skipped', e.target.checked);
     row.classList.toggle('ok', !e.target.checked);
-    const wi = row.querySelector('input[data-waga]');
+    const wi = row.querySelector('input[data-pkt]');
     if (wi) wi.disabled = e.target.checked;
     const g = row.closest('details.fgroup');
     if (g) refreshGroupInfo(g);
     setDirty(true);
     updateSummary();
   });
-  // wagi: walidacja w trakcie pisania, formatowanie „99,9” po opuszczeniu pola
+  // punkty: walidacja w trakcie pisania, formatowanie „99,9” po opuszczeniu pola
   $('features').addEventListener('input', (e) => {
-    const k = e.target.dataset.waga;
+    const k = e.target.dataset.pkt;
     if (!k) return;
-    const n = W.parseWaga(e.target.value);
+    const n = W.parsePunkty(e.target.value);
     e.target.classList.toggle('invalid', n === null);
     if (n === null) return;
-    if (n === W.WAGA_DOMYSLNA) delete wagi[k]; else wagi[k] = n;
-    e.target.classList.toggle('changed', n !== W.WAGA_DOMYSLNA);
+    if (n === W.PUNKTY_DOMYSLNE) delete punkty[k]; else punkty[k] = n;
+    e.target.classList.toggle('changed', n !== W.PUNKTY_DOMYSLNE);
     const g = e.target.closest('details.fgroup');
     if (g) refreshGroupInfo(g);
     setDirty(true);
     updateSummary();
   });
   $('features').addEventListener('focusout', (e) => {
-    const k = e.target.dataset.waga;
+    const k = e.target.dataset.pkt;
     if (!k) return;
-    e.target.value = W.formatWaga(W.waga(wagi, k));   // niepoprawny tekst wraca do ostatniej poprawnej wagi
+    e.target.value = W.formatPunkty(W.punkty(punkty, k));   // niepoprawny tekst wraca do ostatniej poprawnej wartości
+    e.target.classList.remove('invalid');
+  });
+  $('testyPkt').addEventListener('input', (e) => {
+    const n = W.parsePunkty(e.target.value);
+    e.target.classList.toggle('invalid', n === null);
+    if (n === null) return;
+    wz.testyPunkty = n;
+    e.target.classList.toggle('changed', n > 0);
+    setDirty(true);
+    updateSummary();
+  });
+  $('testyPkt').addEventListener('focusout', (e) => {
+    e.target.value = W.formatPunkty(wz.testyPunkty);
     e.target.classList.remove('invalid');
   });
   $('stale').addEventListener('click', (e) => {

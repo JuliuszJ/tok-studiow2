@@ -11,8 +11,11 @@
   const TEST_PATH = /(^|\/)src\/test\//i;
 
   const state = {
-    ref: { name: '', files: [], pomijane: [], wagi: {} },
+    ref: { name: '', files: [], pomijane: [], punkty: {}, testyPunkty: 0 },
     stu: [],                                   // [{name, path, content, include, note}]
+    extraPts: {},                              // punkty za konstrukcje dodatkowe (tylko bieżący projekt)
+    testPct: 0,                                // pokrycie testami w % (tylko bieżący projekt)
+    cmp: null,
   };
 
   function addStudentFiles(list) {
@@ -47,10 +50,18 @@
   function featureRows(rows, kind, opts) {
     const where = kind === 'miss' ? 'Gdzie we wzorcu' : kind === 'ref' ? 'Gdzie we wzorcu' : 'Gdzie w projekcie';
     const cls = kind === 'ref' ? 'ok' : kind;
-    const showW = kind !== 'extra' && Object.keys(state.ref.wagi).length > 0;
     return W.groupedRows(rows, r => {
       const occ = kind === 'miss' || kind === 'ref' ? r.ref : r.stu;
-      const badge = showW ? `<span class="badge">waga ${W.formatWaga(W.waga(state.ref.wagi, r.key))}</span>` : '';
+      if (kind === 'extra') {
+        const id = 'x_' + r.key.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const v = state.extraPts[r.key] || 0;
+        return `<div class="feat extra"><div class="head"><div class="name" title="${esc(r.key)}">${esc(r.label)}</div>` +
+          `<span class="pktbox"><input type="text" class="pkt${v ? ' changed' : ''}" id="${id}" data-extra="${esc(r.key)}" ` +
+          `value="${W.formatPunkty(v)}" inputmode="decimal" maxlength="4" aria-label="Punkty za: ${esc(r.label)}" ` +
+          `title="Punkty w formacie 99,9 (0,0–99,9)"><label for="${id}">pkt</label></span></div>` +
+          `<details><summary>${where} (${occ.length})</summary>${W.occList(occ)}</details></div>`;
+      }
+      const badge = `<span class="badge pkt">${W.formatPunkty(W.punkty(state.ref.punkty, r.key))} pkt</span>`;
       return `<div class="feat ${cls}"><div class="name" title="${esc(r.key)}">${esc(r.label)}${badge}</div>` +
         `<details><summary>${where} (${occ.length})</summary>${W.occList(occ)}</details></div>`;
     }, opts);
@@ -61,13 +72,14 @@
     const rows = [...refRes.features.values()].filter(f => !skip.has(f.key))
       .map(f => ({ key: f.key, group: f.group, label: f.label, ref: f.occ }));
     const skipped = refRes.features.size - rows.length;
-    const sumAll = rows.reduce((a, r) => a + W.waga(state.ref.wagi, r.key), 0);
+    const sumAll = rows.reduce((a, r) => a + W.punkty(state.ref.punkty, r.key), 0);
     $('refInfo').textContent = `${state.ref.name} — ${state.ref.files.length} plików, ${rows.length} konstrukcji liczonych` +
-      `, suma wag ${W.formatWaga(sumAll)}` +
+      `, razem ${W.formatPunkty(sumAll + state.ref.testyPunkty)} pkt` +
+      (state.ref.testyPunkty ? ` (w tym maks. ${W.formatPunkty(state.ref.testyPunkty)} pkt za pokrycie testami)` : '') +
       (skipped ? `, ${skipped} pominiętych (ustawienia w edytorze wzorca).` : '.');
     fileList($('refFiles'), state.ref.files, false);
-    const sumW = (l) => W.formatWaga(l.reduce((a, r) => a + W.waga(state.ref.wagi, r.key), 0));
-    $('refFeatures').innerHTML = featureRows(rows, 'ref', { collapsed: refGroups.collapsed, groupInfo: (g, l) => `${l.length} konstrukcji · suma wag ${sumW(l)}` });
+    const sumP = (l) => W.formatPunkty(l.reduce((a, r) => a + W.punkty(state.ref.punkty, r.key), 0));
+    $('refFeatures').innerHTML = featureRows(rows, 'ref', { collapsed: refGroups.collapsed, groupInfo: (g, l) => `${l.length} konstrukcji · ${sumP(l)} pkt` });
   }
 
   function render() {
@@ -80,22 +92,25 @@
     if (!included.length) { $('results').classList.add('hidden'); return; }
 
     const stuRes = A.analyze(included.map(f => ({ name: f.name, content: f.content })));
-    const cmp = A.compare(refRes, stuRes, CFG, state.ref.pomijane, state.ref.wagi);
+    const cmp = A.compare(refRes, stuRes, CFG, state.ref.pomijane, state.ref.punkty);
+    state.cmp = cmp;
     $('results').classList.remove('hidden');
-    $('tGrade').textContent = cmp.grade;
-    $('tPct').textContent = cmp.pct.toLocaleString('pl-PL') + '%';
-    $('tBar').style.width = cmp.pct + '%';
     $('tMiss').textContent = cmp.missing.length;
     $('tExtra').textContent = cmp.extra.length;
     $('cMiss').textContent = `(${cmp.missing.length})`;
     $('cExtra').textContent = `(${cmp.extra.length})`;
     $('cOk').textContent = `(${cmp.common.length})`;
     $('cProb').textContent = `(${stuRes.problems.length})`;
-    $('tPctLabel').textContent = cmp.weighted ? 'Pokrycie konstrukcji wzorca (ważone)' : 'Pokrycie konstrukcji wzorca';
-    $('pMiss').innerHTML = `<p class="muted">Konstrukcje występujące we wzorcu, których nie znaleziono w projekcie (obecnych ${cmp.scoredHit} z ${cmp.scoredTotal}` +
-      (cmp.weighted ? `; suma wag ${W.formatWaga(cmp.weightHit)} z ${W.formatWaga(cmp.weightTotal)}` : '') + ').</p>' + featureRows(cmp.missing, 'miss');
-    $('pExtra').innerHTML = '<p class="muted">Konstrukcje użyte w projekcie, których nie ma we wzorcu.</p>' + featureRows(cmp.extra, 'extra');
-    $('pOk').innerHTML = featureRows(cmp.common, 'ok');
+    const pkt = W.formatPunkty;
+    const sumRows = (rows) => rows.reduce((a, r) => a + r.punkty, 0);
+    $('pMiss').innerHTML = `<p class="muted">Konstrukcje występujące we wzorcu, których nie znaleziono w projekcie ` +
+      `(${cmp.missing.length} konstrukcji, ${pkt(sumRows(cmp.missing))} pkt).</p>` + featureRows(cmp.missing, 'miss');
+    $('pExtra').innerHTML = '<p class="muted">Konstrukcje użyte w projekcie, których nie ma we wzorcu. Wpisz punkty (99,9) za konstrukcje, ' +
+      'które chcesz zaliczyć — dodają się do wyniku (najwyżej 100%). Punkty obowiązują tylko dla bieżącego projektu. ' +
+      '<span id="extraSum"></span></p>' + featureRows(cmp.extra, 'extra');
+    $('pOk').innerHTML = `<p class="muted">Konstrukcje wzorca obecne w projekcie (${cmp.common.length} konstrukcji, ${pkt(sumRows(cmp.common))} pkt).</p>` +
+      featureRows(cmp.common, 'ok');
+    updateScore();
     $('pProb').innerHTML = stuRes.problems.length
       ? '<ul class="problems">' + stuRes.problems.map(p => `<li>${esc(p.msg)} <span class="f">${esc(p.file)}</span></li>`).join('') + '</ul>'
       : '<p class="empty">Nie wykryto problemów.</p>';
@@ -105,17 +120,78 @@
     $('progi').textContent = (CFG.progi || []).map(p => `${p.ocena} od ${p.min}%`).join(', ');
   }
 
+  // Wynik z uwzględnieniem punktów za konstrukcje dodatkowe (bez ponownego rysowania list).
+  function extraSum() {
+    if (!state.cmp) return 0;
+    return W.roundPkt(state.cmp.extra.reduce((a, r) => a + (state.extraPts[r.key] || 0), 0));
+  }
+  function updateScore() {
+    const cmp = state.cmp;
+    const ex = extraSum();
+    const tMax = state.ref.testyPunkty;
+    const sc = A.score(cmp, ex, CFG, { max: tMax, pct: state.testPct });
+    const pkt = W.formatPunkty;
+    $('tGrade').textContent = sc.grade;
+    $('tPct').textContent = sc.pct.toLocaleString('pl-PL') + '%';
+    $('tBar').style.width = sc.pct + '%';
+    const parts = [`konstrukcje ${pkt(cmp.pointsHit)}`];
+    if (ex) parts.push(`dodatkowe ${pkt(ex)}`);
+    if (tMax) parts.push(`testy ${pkt(sc.pointsTests)}`);
+    $('tPts').textContent = parts.length > 1
+      ? `${parts.join(' + ')} = ${pkt(sc.pointsGot)} z ${pkt(sc.pointsMax)} pkt`
+      : `${pkt(sc.pointsGot)} z ${pkt(sc.pointsMax)} pkt`;
+    $('testInfo').textContent = tMax
+      ? `→ ${pkt(sc.pointsTests)} z ${pkt(tMax)} pkt (maks. punkty za testy × pokrycie)`
+      : 'Wzorzec nie przyznaje punktów za testy (ustawienie w edytorze wzorca) — wartość tylko informacyjna.';
+    const es = $('extraSum');
+    if (es) es.textContent = `Razem za dodatkowe: ${pkt(ex)} pkt.`;
+  }
+
   // ---------- wzorzec ----------
   function setRef(w) {
     const n = W.normalizeWzorzec(w);
-    state.ref = { name: n.nazwa, pomijane: n.pomijane, wagi: n.wagi, files: n.pliki.map(f => ({ name: f.name, path: f.name, content: f.content })) };
+    state.ref = { name: n.nazwa, pomijane: n.pomijane, punkty: n.punkty, testyPunkty: n.testyPunkty, files: n.pliki.map(f => ({ name: f.name, path: f.name, content: f.content })) };
   }
   const setDefaultRef = () => setRef(window.WZORZEC || { nazwa: 'Brak wzorca (brak pliku wzorzec.js)' });
 
   // ---------- zdarzenia UI ----------
   $('inFiles').addEventListener('change', async (e) => { addStudentFiles(await W.collect(e.target.files)); e.target.value = ''; });
   $('inDir').addEventListener('change', async (e) => { addStudentFiles(await W.collect(e.target.files)); e.target.value = ''; });
-  $('btnClear').addEventListener('click', () => { state.stu = []; render(); });
+  $('btnClear').addEventListener('click', () => {
+    state.stu = []; state.extraPts = {}; state.testPct = 0;
+    $('inTest').value = '0,0'; $('inTest').classList.remove('changed');
+    render();
+  });
+  // pokrycie testami: walidacja w trakcie pisania, format „99,9” po opuszczeniu pola
+  $('inTest').addEventListener('input', (e) => {
+    const n = W.parseProcent(e.target.value);
+    e.target.classList.toggle('invalid', n === null);
+    if (n === null) return;
+    state.testPct = n;
+    e.target.classList.toggle('changed', n > 0);
+    if (state.cmp) updateScore();
+  });
+  $('inTest').addEventListener('focusout', (e) => {
+    e.target.value = W.formatPunkty(state.testPct);
+    e.target.classList.remove('invalid');
+  });
+  // punkty za konstrukcje dodatkowe: walidacja w trakcie pisania, format „99,9” po opuszczeniu pola
+  $('pExtra').addEventListener('input', (e) => {
+    const k = e.target.dataset.extra;
+    if (!k) return;
+    const n = W.parsePunkty(e.target.value);
+    e.target.classList.toggle('invalid', n === null);
+    if (n === null) return;
+    if (n) state.extraPts[k] = n; else delete state.extraPts[k];
+    e.target.classList.toggle('changed', n > 0);
+    updateScore();
+  });
+  $('pExtra').addEventListener('focusout', (e) => {
+    const k = e.target.dataset.extra;
+    if (!k) return;
+    e.target.value = W.formatPunkty(state.extraPts[k] || 0);
+    e.target.classList.remove('invalid');
+  });
   $('stuFiles').addEventListener('change', (e) => {
     const i = e.target.dataset.i;
     if (i !== undefined) { state.stu[+i].include = e.target.checked; render(); }
