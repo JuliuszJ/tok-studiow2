@@ -25,11 +25,13 @@ const files = [
 
 let nazwa = 'Projekt wzorcowy: Zaliczenie semestru';
 let pomijane = ['dmn.hit.UNIQUE'];
+let wagi = {};
 if (existsSync(target)) {
   const text = readFileSync(target, 'utf8');
   const start = text.indexOf('{', text.indexOf('window.WZORZEC'));
   const old = JSON.parse(text.slice(start, text.lastIndexOf('}') + 1));
   if (Array.isArray(old.pomijane)) pomijane = old.pomijane;
+  if (old.wagi && typeof old.wagi === 'object') wagi = old.wagi;
   if (old.nazwa) nazwa = old.nazwa;
 }
 
@@ -37,6 +39,6 @@ const pliki = files.map(f => ({ name: basename(f), content: readFileSync(join(re
 const out = '// Wzorzec projektu dla strony ewaluacji (index.html).\n' +
   '// Edytuj za pomocą edytor-wzorca.html albo wygeneruj: node ewaluacja/narzedzia/generuj-wzorzec.mjs\n' +
   '// Zapisano: ' + new Date().toISOString() + '\n' +
-  'window.WZORZEC = ' + JSON.stringify({ nazwa, pomijane, pliki }, null, 1) + ';\n';
+  'window.WZORZEC = ' + JSON.stringify({ nazwa, pomijane, wagi, pliki }, null, 1) + ';\n';
 writeFileSync(target, out, 'utf8');
-console.log(`Zapisano wzorzec.js (${pliki.length} plików, pomijanych konstrukcji: ${pomijane.length})`);
+console.log(`Zapisano wzorzec.js (${pliki.length} plików, pomijanych konstrukcji: ${pomijane.length}, wag innych niż 1,0: ${Object.keys(wagi).length})`);

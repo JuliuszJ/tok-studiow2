@@ -10,7 +10,9 @@ Strona pokazuje konstrukcje brakujące względem wzorca, konstrukcje dodatkowe, 
 Otwórz `edytor-wzorca.html`:
 1. Wzorzec z `wzorzec.js` leżącego obok strony wczytuje się automatycznie. Inny plik otworzysz przyciskiem *Wczytaj wzorzec.js…*.
 2. Dodaj lub usuń pliki modeli (`.bpmn`, `.dmn`, `.form`, folder, ZIP).
-3. Zaznacz checkboxem konstrukcje **pomijane**. Takich konstrukcji `index.html` nie pokazuje, nie liczy do oceny
+3. Ustaw **wagi** konstrukcji w formacie `99,9` (0,0–99,9, domyślnie 1,0). Pokrycie = suma wag konstrukcji
+   obecnych u studenta / suma wag wszystkich liczonych konstrukcji wzorca; w `wzorzec.js` zapisywane są tylko wagi różne od 1,0.
+   Zaznacz checkboxem konstrukcje **pomijane**. Takich konstrukcji `index.html` nie pokazuje, nie liczy do oceny
    i nie wymienia wśród dodatkowych u studenta.
 4. *Zapisz wzorzec.js…* i nadpisz plik `ewaluacja/wzorzec.js`. W Chrome/Edge pojawi się okno wyboru miejsca:
    przy pierwszym użyciu wskaż katalog `ewaluacja`, potem okno otwiera się już w katalogu ostatnio
@@ -27,7 +29,7 @@ Domyślny wzorzec pomija `caller.bpmn` (pomocniczy dla testu) i `AkcjaUzytkownik
 
 ## Pliki
 
-- `wzorzec.js` – pliki modeli wzorca i lista pomijanych konstrukcji.
+- `wzorzec.js` – pliki modeli wzorca, lista pomijanych konstrukcji i wagi.
 - `konfiguracja.js` – progi ocen (% pokrycia).
 - `analizator.js` – wykrywanie konstrukcji; `wspolne.js` – wczytywanie plików/ZIP, odczyt i zapis wzorca.
 - `app.js` – strona ewaluacji; `edytor-wzorca.js` – edytor wzorca; `style.css` – wspólne style.

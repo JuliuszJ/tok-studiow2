@@ -85,13 +85,36 @@
   }
 
   // ---------- wzorzec.js ----------
-  // Format: window.WZORZEC = { nazwa, pliki: [{name, content}], pomijane: [klucz, ...] };
+  // Format: window.WZORZEC = { nazwa, pomijane: [klucz, ...], wagi: { klucz: liczba }, pliki: [{name, content}] };
+  // Wagi: 0,0–99,9 z jednym miejscem po przecinku; brak wpisu = waga domyślna 1,0.
+  const WAGA_DOMYSLNA = 1;
+  const WAGA_MAX = 99.9;
+  const roundWaga = (n) => Math.round(n * 10) / 10;
+  // "2,5" / "2.5" / "2" -> 2.5; niepoprawny tekst -> null
+  function parseWaga(s) {
+    const t = String(s).trim().replace('.', ',');
+    if (!/^\d{1,2}(,\d)?$/.test(t)) return null;
+    const n = roundWaga(parseFloat(t.replace(',', '.')));
+    return n >= 0 && n <= WAGA_MAX ? n : null;
+  }
+  const formatWaga = (n) => roundWaga(n).toFixed(1).replace('.', ',');
+  const waga = (wagi, key) => (wagi && Object.prototype.hasOwnProperty.call(wagi, key) ? wagi[key] : WAGA_DOMYSLNA);
+
+  function normalizeWagi(w) {
+    const out = {};
+    if (w && typeof w === 'object') Object.keys(w).sort().forEach(k => {
+      const n = Number(w[k]);
+      if (Number.isFinite(n) && n >= 0 && n <= WAGA_MAX && roundWaga(n) !== WAGA_DOMYSLNA) out[k] = roundWaga(n);
+    });
+    return out;
+  }
   function normalizeWzorzec(w) {
     w = w || {};
     return {
       nazwa: w.nazwa || 'Wzorzec',
       pliki: Array.isArray(w.pliki) ? w.pliki.filter(f => f && f.name && typeof f.content === 'string') : [],
       pomijane: Array.isArray(w.pomijane) ? w.pomijane.filter(k => typeof k === 'string') : [],
+      wagi: normalizeWagi(w.wagi),
     };
   }
   // Odczyt pliku wzorzec.js bez wykonywania kodu: wycinamy literał JSON.
@@ -107,7 +130,7 @@
     return '// Wzorzec projektu dla strony ewaluacji (index.html).\n' +
       '// Edytuj za pomocą edytor-wzorca.html albo wygeneruj: node ewaluacja/narzedzia/generuj-wzorzec.mjs\n' +
       '// Zapisano: ' + new Date().toISOString() + '\n' +
-      'window.WZORZEC = ' + JSON.stringify({ nazwa: data.nazwa, pomijane: data.pomijane, pliki: data.pliki }, null, 1) + ';\n';
+      'window.WZORZEC = ' + JSON.stringify({ nazwa: data.nazwa, pomijane: data.pomijane, wagi: data.wagi, pliki: data.pliki }, null, 1) + ';\n';
   }
 
   // ---------- widok konstrukcji ----------
@@ -157,5 +180,6 @@
     return { collapsed, expandAll: () => setAll(true), collapseAll: () => setAll(false) };
   }
 
-  global.Wspolne = { SUPPORTED, esc, readZip, collect, filesFromDrop, normalizeWzorzec, parseWzorzecJs, serializeWzorzec, occList, groupedRows, collapsibleGroups };
+  global.Wspolne = { SUPPORTED, esc, readZip, collect, filesFromDrop, normalizeWzorzec, parseWzorzecJs, serializeWzorzec, occList, groupedRows, collapsibleGroups,
+    WAGA_DOMYSLNA, parseWaga, formatWaga, waga, normalizeWagi };
 })(window);

@@ -1,6 +1,6 @@
 // Wzorzec projektu dla strony ewaluacji (index.html).
 // Edytuj za pomocą edytor-wzorca.html albo wygeneruj: node ewaluacja/narzedzia/generuj-wzorzec.mjs
-// Zapisano: 2026-11-09T16:48:21.340Z
+// Zapisano: 2026-11-09T17:42:44.921Z
 window.WZORZEC = {
  "nazwa": "Projekt wzorcowy: Zaliczenie semestru",
  "pomijane": [
@@ -14,8 +14,20 @@ window.WZORZEC = {
   "dmn.compare",
   "dmn.hit.UNIQUE",
   "dmn.inputFn",
+  "dmn.multiInput",
   "dmn.multiOutput",
   "dmn.range",
+  "dmn.table",
+  "evt.boundaryEvent.error.int",
+  "evt.boundaryEvent.signal.int",
+  "evt.endEvent.error",
+  "evt.endEvent.message",
+  "evt.endEvent.none",
+  "evt.intermediateCatchEvent.message",
+  "evt.intermediateThrowEvent.message",
+  "evt.intermediateThrowEvent.signal",
+  "evt.startEvent.message",
+  "evt.startEvent.none",
   "flow.condition",
   "flow.default",
   "form.default",
@@ -33,8 +45,12 @@ window.WZORZEC = {
   "form.reused",
   "form.valuesExpr",
   "str.executable",
-  "str.pool"
+  "str.multiProcess",
+  "str.pool",
+  "timer.timeDuration",
+  "user.camunda"
  ],
+ "wagi": {},
  "pliki": [
   {
    "name": "ZaliczenieSemestru.bpmn",

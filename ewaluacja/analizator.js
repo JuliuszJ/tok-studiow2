@@ -540,24 +540,30 @@
 
   // ---------- porównanie ----------
   // pomijane: klucze konstrukcji całkowicie pomijanych (nie są pokazywane, liczone ani raportowane jako dodatkowe)
-  function compare(ref, stu, cfg, pomijane) {
+  // wagi: { klucz: waga } — brak wpisu = 1; pokrycie = suma wag obecnych / suma wag wszystkich liczonych
+  function compare(ref, stu, cfg, pomijane, wagi) {
     const skip = new Set(pomijane || []);
+    const w = (k) => (wagi && Object.prototype.hasOwnProperty.call(wagi, k) ? wagi[k] : 1);
     const missing = [], common = [], extra = [];
     ref.features.forEach((f, k) => {
       if (skip.has(k)) return;
       const s = stu.features.get(k);
-      const row = { key: k, group: f.group, label: f.label, ref: f.occ, stu: s ? s.occ : [] };
+      const row = { key: k, group: f.group, label: f.label, ref: f.occ, stu: s ? s.occ : [], waga: w(k) };
       (s ? common : missing).push(row);
     });
     stu.features.forEach((f, k) => {
       if (!ref.features.has(k) && !skip.has(k)) extra.push({ key: k, group: f.group, label: f.label, ref: [], stu: f.occ });
     });
+    const sum = (rows) => Math.round(10 * rows.reduce((a, r) => a + r.waga, 0)) / 10;
     const scoredTotal = missing.length + common.length;
     const scoredHit = common.length;
-    const pct = scoredTotal ? Math.round(1000 * scoredHit / scoredTotal) / 10 : 0;
+    const weightTotal = sum(missing) + sum(common);
+    const weightHit = sum(common);
+    const pct = weightTotal ? Math.round(1000 * weightHit / weightTotal) / 10 : 0;
     const progi = (cfg && cfg.progi) || [];
     const grade = (progi.find(p => pct >= p.min) || { ocena: '—' }).ocena;
-    return { missing, common, extra, pct, grade, scoredTotal, scoredHit };
+    const weighted = missing.concat(common).some(r => r.waga !== 1);
+    return { missing, common, extra, pct, grade, scoredTotal, scoredHit, weightTotal, weightHit, weighted };
   }
 
   global.Analizator = { analyze, compare, classify, GROUP_ORDER };

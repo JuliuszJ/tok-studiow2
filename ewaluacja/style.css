@@ -85,3 +85,13 @@
   details.fgroup > summary h3 { margin: 10px 0 4px; }
   details.fgroup .ginfo { color: var(--muted); font-size: 13px; }
   @media print { details.fgroup > summary::before { display: none; } }
+  /* wagi konstrukcji */
+  .wagabox { display: flex; align-items: center; gap: 6px; flex: none; font-size: 12px; color: var(--muted); }
+  .wagabox input.waga { width: 4.2em; font: inherit; font-size: 14px; text-align: right; padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--text); font-variant-numeric: tabular-nums; }
+  .wagabox input.waga.changed { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .wagabox input.waga.invalid { border-color: var(--miss); background: var(--miss-soft); }
+  .wagabox input.waga:disabled { opacity: .5; }
+  /* długie klucze nie mogą poszerzać strony na wąskich ekranach */
+  .feat { grid-template-columns: minmax(0, 1fr); }
+  .feat .head label { min-width: 0; overflow-wrap: anywhere; }
+  .feat .key { overflow-wrap: anywhere; }

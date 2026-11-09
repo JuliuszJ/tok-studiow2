@@ -28,7 +28,7 @@
   <section id="results" class="hidden">
     <div class="tiles">
       <div class="tile grade"><div class="v" id="tGrade">—</div><div class="l">Sugerowana ocena</div></div>
-      <div class="tile"><div class="v" id="tPct">0%</div><div class="l">Pokrycie konstrukcji wzorca</div><div class="bar"><span id="tBar" style="width:0"></span></div></div>
+      <div class="tile"><div class="v" id="tPct">0%</div><div class="l" id="tPctLabel">Pokrycie konstrukcji wzorca</div><div class="bar"><span id="tBar" style="width:0"></span></div></div>
       <div class="tile miss"><div class="v" id="tMiss">0</div><div class="l">Brakujące konstrukcje</div></div>
       <div class="tile extra"><div class="v" id="tExtra">0</div><div class="l">Dodatkowe konstrukcje</div></div>
     </div>
@@ -48,12 +48,12 @@
       <div class="tab-panel hidden" data-panel="problems"><div id="pProb"></div></div>
       <div class="tab-panel hidden" data-panel="size"><div id="pSize"></div></div>
     </div>
-    <p class="muted">Ocena liczona jest wyłącznie z obecności konstrukcji wzorca (liczba wystąpień nie ma znaczenia). Konstrukcje dodatkowe nie wpływają na wynik — służą do oceny przez prowadzącego. Progi: <span id="progi"></span>.</p>
+    <p class="muted">Ocena liczona jest wyłącznie z obecności konstrukcji wzorca (liczba wystąpień nie ma znaczenia); każda konstrukcja liczy się ze swoją wagą (domyślnie 1,0). Konstrukcje dodatkowe nie wpływają na wynik — służą do oceny przez prowadzącego. Progi: <span id="progi"></span>.</p>
   </section>
 
   <section class="card noprint">
     <details class="teacher">
-      <summary>Wzorzec (dla prowadzącego)</summary>
+      <summary>Wzorzec</summary>
       <p class="muted" id="refInfo"></p>
       <div class="row">
         <label class="btn" for="inRef">Wczytaj inny wzorzec…</label>

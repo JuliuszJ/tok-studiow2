@@ -11,7 +11,7 @@
   const TEST_PATH = /(^|\/)src\/test\//i;
 
   const state = {
-    ref: { name: '', files: [], pomijane: [] },
+    ref: { name: '', files: [], pomijane: [], wagi: {} },
     stu: [],                                   // [{name, path, content, include, note}]
   };
 
@@ -47,9 +47,11 @@
   function featureRows(rows, kind, opts) {
     const where = kind === 'miss' ? 'Gdzie we wzorcu' : kind === 'ref' ? 'Gdzie we wzorcu' : 'Gdzie w projekcie';
     const cls = kind === 'ref' ? 'ok' : kind;
+    const showW = kind !== 'extra' && Object.keys(state.ref.wagi).length > 0;
     return W.groupedRows(rows, r => {
       const occ = kind === 'miss' || kind === 'ref' ? r.ref : r.stu;
-      return `<div class="feat ${cls}"><div class="name" title="${esc(r.key)}">${esc(r.label)}</div>` +
+      const badge = showW ? `<span class="badge">waga ${W.formatWaga(W.waga(state.ref.wagi, r.key))}</span>` : '';
+      return `<div class="feat ${cls}"><div class="name" title="${esc(r.key)}">${esc(r.label)}${badge}</div>` +
         `<details><summary>${where} (${occ.length})</summary>${W.occList(occ)}</details></div>`;
     }, opts);
   }
@@ -59,10 +61,13 @@
     const rows = [...refRes.features.values()].filter(f => !skip.has(f.key))
       .map(f => ({ key: f.key, group: f.group, label: f.label, ref: f.occ }));
     const skipped = refRes.features.size - rows.length;
+    const sumAll = rows.reduce((a, r) => a + W.waga(state.ref.wagi, r.key), 0);
     $('refInfo').textContent = `${state.ref.name} — ${state.ref.files.length} plików, ${rows.length} konstrukcji liczonych` +
+      `, suma wag ${W.formatWaga(sumAll)}` +
       (skipped ? `, ${skipped} pominiętych (ustawienia w edytorze wzorca).` : '.');
     fileList($('refFiles'), state.ref.files, false);
-    $('refFeatures').innerHTML = featureRows(rows, 'ref', { collapsed: refGroups.collapsed, groupInfo: (g, l) => `${l.length} konstrukcji` });
+    const sumW = (l) => W.formatWaga(l.reduce((a, r) => a + W.waga(state.ref.wagi, r.key), 0));
+    $('refFeatures').innerHTML = featureRows(rows, 'ref', { collapsed: refGroups.collapsed, groupInfo: (g, l) => `${l.length} konstrukcji · suma wag ${sumW(l)}` });
   }
 
   function render() {
@@ -75,7 +80,7 @@
     if (!included.length) { $('results').classList.add('hidden'); return; }
 
     const stuRes = A.analyze(included.map(f => ({ name: f.name, content: f.content })));
-    const cmp = A.compare(refRes, stuRes, CFG, state.ref.pomijane);
+    const cmp = A.compare(refRes, stuRes, CFG, state.ref.pomijane, state.ref.wagi);
     $('results').classList.remove('hidden');
     $('tGrade').textContent = cmp.grade;
     $('tPct').textContent = cmp.pct.toLocaleString('pl-PL') + '%';
@@ -86,7 +91,9 @@
     $('cExtra').textContent = `(${cmp.extra.length})`;
     $('cOk').textContent = `(${cmp.common.length})`;
     $('cProb').textContent = `(${stuRes.problems.length})`;
-    $('pMiss').innerHTML = `<p class="muted">Konstrukcje występujące we wzorcu, których nie znaleziono w projekcie (obecnych ${cmp.scoredHit} z ${cmp.scoredTotal}).</p>` + featureRows(cmp.missing, 'miss');
+    $('tPctLabel').textContent = cmp.weighted ? 'Pokrycie konstrukcji wzorca (ważone)' : 'Pokrycie konstrukcji wzorca';
+    $('pMiss').innerHTML = `<p class="muted">Konstrukcje występujące we wzorcu, których nie znaleziono w projekcie (obecnych ${cmp.scoredHit} z ${cmp.scoredTotal}` +
+      (cmp.weighted ? `; suma wag ${W.formatWaga(cmp.weightHit)} z ${W.formatWaga(cmp.weightTotal)}` : '') + ').</p>' + featureRows(cmp.missing, 'miss');
     $('pExtra').innerHTML = '<p class="muted">Konstrukcje użyte w projekcie, których nie ma we wzorcu.</p>' + featureRows(cmp.extra, 'extra');
     $('pOk').innerHTML = featureRows(cmp.common, 'ok');
     $('pProb').innerHTML = stuRes.problems.length
@@ -101,7 +108,7 @@
   // ---------- wzorzec ----------
   function setRef(w) {
     const n = W.normalizeWzorzec(w);
-    state.ref = { name: n.nazwa, pomijane: n.pomijane, files: n.pliki.map(f => ({ name: f.name, path: f.name, content: f.content })) };
+    state.ref = { name: n.nazwa, pomijane: n.pomijane, wagi: n.wagi, files: n.pliki.map(f => ({ name: f.name, path: f.name, content: f.content })) };
   }
   const setDefaultRef = () => setRef(window.WZORZEC || { nazwa: 'Brak wzorca (brak pliku wzorzec.js)' });
 

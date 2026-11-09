@@ -8,6 +8,7 @@
 
   let wz = W.normalizeWzorzec(window.WZORZEC || { nazwa: 'Wzorzec', pliki: [], pomijane: [] });
   let skip = new Set(wz.pomijane);
+  let wagi = { ...wz.wagi };          // tylko wagi różne od 1,0
   let dirty = false;
   let analysis = null;
 
@@ -25,9 +26,10 @@
       : '';
   }
 
+  const sumWag = (keys) => keys.filter(k => !skip.has(k)).reduce((a, k) => a + W.waga(wagi, k), 0);
   const groupInfo = (g, list) => {
     const n = list.filter(r => skip.has(r.key)).length;
-    return `${list.length} konstrukcji` + (n ? ` · pominiętych ${n}` : '');
+    return `${list.length} konstrukcji · suma wag ${W.formatWaga(sumWag(list.map(r => r.key)))}` + (n ? ` · pominiętych ${n}` : '');
   };
   function refreshGroupInfo(groupEl) {
     const keys = [...groupEl.querySelectorAll('input[data-key]')].map(i => ({ key: i.dataset.key }));
@@ -39,9 +41,13 @@
     $('features').innerHTML = W.groupedRows(rows, r => {
       const id = 'k_' + r.key.replace(/[^a-zA-Z0-9_-]/g, '_');
       const s = skip.has(r.key);
+      const wv = W.waga(wagi, r.key);
       return `<div class="feat ${s ? 'skipped' : 'ok'}" data-row="${esc(r.key)}"><div class="head">` +
         `<input type="checkbox" id="${id}" data-key="${esc(r.key)}" ${s ? 'checked' : ''}>` +
-        `<label for="${id}"><span class="name">${esc(r.label)}</span><span class="key">${esc(r.key)}</span></label></div>` +
+        `<label for="${id}"><span class="name">${esc(r.label)}</span><span class="key">${esc(r.key)}</span></label>` +
+        `<span class="wagabox"><label for="w_${id}">waga</label><input type="text" class="waga${wv !== W.WAGA_DOMYSLNA ? ' changed' : ''}" id="w_${id}" ` +
+        `data-waga="${esc(r.key)}" value="${W.formatWaga(wv)}" inputmode="decimal" maxlength="4" ${s ? 'disabled' : ''} ` +
+        `title="Waga w formacie 99,9 (0,0–99,9), domyślnie 1,0"></span></div>` +
         `<details><summary>Gdzie we wzorcu (${r.ref.length})</summary>${W.occList(r.ref)}</details></div>`;
     }, { collapsed: groups.collapsed, groupInfo });
     const stale = [...skip].filter(k => !analysis.features.has(k));
@@ -55,7 +61,9 @@
     if (!wz.pliki.length) { $('summary').textContent = 'Wzorzec jest pusty — dodaj pliki modeli albo wczytaj wzorzec.js.'; return; }
     const total = analysis.features.size;
     const skipped = [...analysis.features.keys()].filter(k => skip.has(k)).length;
-    $('summary').textContent = `${wz.pliki.length} plików · ${total} konstrukcji · pominiętych ${skipped} · liczonych ${total - skipped}`;
+    $('summary').textContent = `${wz.pliki.length} plików · ${total} konstrukcji · pominiętych ${skipped} · liczonych ${total - skipped}` +
+      ` · suma wag liczonych ${W.formatWaga(sumWag([...analysis.features.keys()]))}` +
+      ` · suma wszystkich wag ${W.formatWaga([...analysis.features.keys()].reduce((a, k) => a + W.waga(wagi, k), 0))}`;
   }
 
   function render() {
@@ -158,6 +166,7 @@
     try {
       wz = W.parseWzorzecJs(await f.text());
       skip = new Set(wz.pomijane);
+      wagi = { ...wz.wagi };
       setDirty(false);
       render();
     } catch (err) { alert('Nie udało się wczytać ' + f.name + ': ' + err.message); }
@@ -166,6 +175,7 @@
   async function save() {
     wz.nazwa = $('nazwa').value.trim() || 'Wzorzec';
     wz.pomijane = [...skip].sort();
+    wz.wagi = W.normalizeWagi(wagi);
     const text = W.serializeWzorzec(wz);
     if (FS_API) {
       try {
@@ -200,10 +210,32 @@
     const row = e.target.closest('.feat');
     row.classList.toggle('skipped', e.target.checked);
     row.classList.toggle('ok', !e.target.checked);
+    const wi = row.querySelector('input[data-waga]');
+    if (wi) wi.disabled = e.target.checked;
     const g = row.closest('details.fgroup');
     if (g) refreshGroupInfo(g);
     setDirty(true);
     updateSummary();
+  });
+  // wagi: walidacja w trakcie pisania, formatowanie „99,9” po opuszczeniu pola
+  $('features').addEventListener('input', (e) => {
+    const k = e.target.dataset.waga;
+    if (!k) return;
+    const n = W.parseWaga(e.target.value);
+    e.target.classList.toggle('invalid', n === null);
+    if (n === null) return;
+    if (n === W.WAGA_DOMYSLNA) delete wagi[k]; else wagi[k] = n;
+    e.target.classList.toggle('changed', n !== W.WAGA_DOMYSLNA);
+    const g = e.target.closest('details.fgroup');
+    if (g) refreshGroupInfo(g);
+    setDirty(true);
+    updateSummary();
+  });
+  $('features').addEventListener('focusout', (e) => {
+    const k = e.target.dataset.waga;
+    if (!k) return;
+    e.target.value = W.formatWaga(W.waga(wagi, k));   // niepoprawny tekst wraca do ostatniej poprawnej wagi
+    e.target.classList.remove('invalid');
   });
   $('stale').addEventListener('click', (e) => {
     if (e.target.id !== 'btnStale') return;
