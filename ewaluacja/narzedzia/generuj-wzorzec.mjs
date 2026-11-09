@@ -1,12 +1,14 @@
 // Generuje plik ../wzorzec.js z plików projektu wzorcowego (prowadzącego).
 // Użycie (z katalogu repozytorium):  node ewaluacja/narzedzia/generuj-wzorzec.mjs
-// Strona działa bez serwera (file://), więc pliki wzorca muszą być osadzone w JS.
-import { readFileSync, writeFileSync } from 'node:fs';
+// Lista pomijanych konstrukcji jest zachowywana z istniejącego wzorzec.js
+// (ustawia się ją w edytor-wzorca.html). Tę samą pracę można wykonać w całości w edytorze.
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const resources = join(here, '..', '..', 'zaliczenie-semestru', 'src', 'main', 'resources');
+const target = join(here, '..', 'wzorzec.js');
 
 // Pliki pomocnicze pominięte celowo:
 //  - caller.bpmn          (proces uruchamiany tylko w OdwolanieTest)
@@ -21,9 +23,20 @@ const files = [
   'DanePlatnosci.form',
 ];
 
-const data = files.map(f => ({ name: basename(f), content: readFileSync(join(resources, f), 'utf8') }));
-const out = '// PLIK GENEROWANY przez narzedzia/generuj-wzorzec.mjs — nie edytuj ręcznie.\n' +
-  '// Wygenerowano: ' + new Date().toISOString() + '\n' +
-  'window.WZORZEC = ' + JSON.stringify({ nazwa: 'Projekt wzorcowy: Zaliczenie semestru', pliki: data }, null, 1) + ';\n';
-writeFileSync(join(here, '..', 'wzorzec.js'), out, 'utf8');
-console.log('Zapisano wzorzec.js (' + data.length + ' plików)');
+let nazwa = 'Projekt wzorcowy: Zaliczenie semestru';
+let pomijane = ['dmn.hit.UNIQUE'];
+if (existsSync(target)) {
+  const text = readFileSync(target, 'utf8');
+  const start = text.indexOf('{', text.indexOf('window.WZORZEC'));
+  const old = JSON.parse(text.slice(start, text.lastIndexOf('}') + 1));
+  if (Array.isArray(old.pomijane)) pomijane = old.pomijane;
+  if (old.nazwa) nazwa = old.nazwa;
+}
+
+const pliki = files.map(f => ({ name: basename(f), content: readFileSync(join(resources, f), 'utf8') }));
+const out = '// Wzorzec projektu dla strony ewaluacji (index.html).\n' +
+  '// Edytuj za pomocą edytor-wzorca.html albo wygeneruj: node ewaluacja/narzedzia/generuj-wzorzec.mjs\n' +
+  '// Zapisano: ' + new Date().toISOString() + '\n' +
+  'window.WZORZEC = ' + JSON.stringify({ nazwa, pomijane, pliki }, null, 1) + ';\n';
+writeFileSync(target, out, 'utf8');
+console.log(`Zapisano wzorzec.js (${pliki.length} plików, pomijanych konstrukcji: ${pomijane.length})`);

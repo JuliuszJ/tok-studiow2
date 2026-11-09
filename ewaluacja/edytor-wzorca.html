@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edytor wzorca</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Edytor wzorca</h1>
+  <p class="lead">Przygotowanie pliku <code>wzorzec.js</code> dla strony ewaluacji: wybór plików modeli wzorca oraz konstrukcji pomijanych w ocenie. Pominięte konstrukcje nie są pokazywane studentom, nie są liczone do oceny i nie trafiają do konstrukcji dodatkowych. <a href="index.html">← Strona ewaluacji</a></p>
+
+  <div class="toolbar">
+    <div class="row">
+      <button type="button" class="primary" id="btnSave">Zapisz wzorzec.js…</button>
+      <button type="button" id="btnOpen">Wczytaj wzorzec.js…</button>
+      <input id="inJs" type="file" accept=".js">
+      <span class="muted" id="summary"></span>
+      <span class="dirty hidden" id="dirty">● niezapisane zmiany</span>
+    </div>
+    <div class="muted" id="saveInfo" style="margin-top:6px"></div>
+    <div class="muted hidden" id="pathBox" style="margin-top:6px">
+      Docelowy plik: <code id="targetPath"></code>
+      <button type="button" id="btnCopyPath">Kopiuj ścieżkę</button>
+      <span id="copyInfo"></span>
+    </div>
+    <details id="ffHelp" class="muted hidden" style="margin-top:6px">
+      <summary>Jak wybrać miejsce zapisu w Firefoksie / Safari?</summary>
+      <p><b>Firefox — włączenie pytania o miejsce zapisu:</b></p>
+      <ol>
+        <li>Otwórz <b>Ustawienia</b> (menu ☰ → Ustawienia) albo wpisz w pasku adresu <code>about:preferences#general</code>.</li>
+        <li>W sekcji <b>Ogólne → Pliki i aplikacje → Pobieranie</b> zaznacz <b>„Pytaj, gdzie zapisać każdy plik”</b>.</li>
+        <li>Wróć tutaj i kliknij <b>Zapisz wzorzec.js…</b>. Firefox nie pozwala stronie ustawić katalogu w oknie zapisu,
+          dlatego przy kliknięciu strona <b>kopiuje do schowka pełną ścieżkę</b> pliku docelowego (pokazaną wyżej).
+          W oknie zapisu wklej ją (Ctrl+V) w pole <b>Nazwa pliku</b>, naciśnij Enter i potwierdź zastąpienie pliku.</li>
+        <li>Firefox zapamiętuje ostatnio użyty katalog, więc kolejne okna zwykle otworzą się już w <code>ewaluacja</code>
+          (chyba że w międzyczasie zapiszesz coś w innym miejscu).</li>
+      </ol>
+      <p><b>Firefox — wyłączenie (powrót do zapisu w Pobranych):</b> w tym samym miejscu odznacz „Pytaj, gdzie zapisać każdy plik”
+        (Firefox wróci do opcji „Zapisuj pliki do” z wybranym folderem).</p>
+      <p><b>Safari:</b> Safari → Ustawienia → Ogólne → <b>Lokalizacja pobieranych plików</b>: ustaw „Pytaj przy każdym pobieraniu”,
+        a po zapisie przywróć „Pobrane”.</p>
+    </details>
+  </div>
+
+  <section class="card">
+    <h2>Pliki wzorca</h2>
+    <div class="row" style="margin-bottom:10px">
+      <label for="nazwa" class="muted">Nazwa:</label>
+      <input type="text" id="nazwa">
+    </div>
+    <div id="drop" class="drop">Przeciągnij tutaj pliki <code>.bpmn</code>, <code>.dmn</code>, <code>.form</code>, folder lub archiwum ZIP — zostaną dodane do wzorca (plik o tej samej nazwie zostanie zastąpiony)</div>
+    <div class="row">
+      <label class="btn" for="inFiles">Dodaj pliki…</label>
+      <input id="inFiles" type="file" multiple accept=".bpmn,.dmn,.form,.zip">
+      <label class="btn" for="inDir">Dodaj folder…</label>
+      <input id="inDir" type="file" webkitdirectory multiple>
+      <button type="button" id="btnClearFiles">Usuń wszystkie pliki</button>
+    </div>
+    <ul class="files" id="files"></ul>
+    <div id="problems"></div>
+  </section>
+
+  <section class="card">
+    <h2>Konstrukcje wzorca</h2>
+    <div class="row" style="margin-bottom:6px">
+      <button type="button" id="btnNone">Uwzględnij wszystkie</button>
+      <button type="button" id="btnAll">Pomiń wszystkie</button>
+      <span class="muted">Zaznaczone pole = konstrukcja pomijana.</span>
+    </div>
+    <div id="stale"></div>
+    <div id="features"></div>
+  </section>
+</main>
+
+<script src="wzorzec.js"></script>
+<script src="analizator.js"></script>
+<script src="wspolne.js"></script>
+<script src="edytor-wzorca.js"></script>
+</body>
+</html>

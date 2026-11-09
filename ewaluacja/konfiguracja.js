@@ -10,9 +10,5 @@ window.KONFIGURACJA = {
     { min: 50, ocena: '3,0' },
     { min: 0,  ocena: '2,0' },
   ],
-  // Konstrukcje pokazywane informacyjnie, ale NIE liczone do pokrycia
-  // (klucze widoczne po najechaniu na nazwę konstrukcji na stronie).
-  nieliczone: [
-    'dmn.hit.UNIQUE',
-  ],
+  // Konstrukcje pomijane w ocenie ustawia się w edytor-wzorca.html (zapisywane w wzorzec.js).
 };

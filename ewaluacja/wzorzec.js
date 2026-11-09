@@ -1,7 +1,40 @@
-// PLIK GENEROWANY przez narzedzia/generuj-wzorzec.mjs — nie edytuj ręcznie.
-// Wygenerowano: 2026-11-09T14:30:02.064Z
+// Wzorzec projektu dla strony ewaluacji (index.html).
+// Edytuj za pomocą edytor-wzorca.html albo wygeneruj: node ewaluacja/narzedzia/generuj-wzorzec.mjs
+// Zapisano: 2026-11-09T16:48:21.340Z
 window.WZORZEC = {
  "nazwa": "Projekt wzorcowy: Zaliczenie semestru",
+ "pomijane": [
+  "act.call.mapping",
+  "act.script.feel",
+  "comm.correlationKey",
+  "data.context",
+  "data.input",
+  "data.output",
+  "dmn.any",
+  "dmn.compare",
+  "dmn.hit.UNIQUE",
+  "dmn.inputFn",
+  "dmn.multiOutput",
+  "dmn.range",
+  "flow.condition",
+  "flow.default",
+  "form.default",
+  "form.field.number",
+  "form.field.radio",
+  "form.field.textarea",
+  "form.field.textfield",
+  "form.file",
+  "form.minmax",
+  "form.nestedKey",
+  "form.numberCfg",
+  "form.readonly",
+  "form.readonlyExpr",
+  "form.required",
+  "form.reused",
+  "form.valuesExpr",
+  "str.executable",
+  "str.pool"
+ ],
  "pliki": [
   {
    "name": "ZaliczenieSemestru.bpmn",
