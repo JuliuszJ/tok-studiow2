@@ -177,17 +177,17 @@
       else add(res, 'str.executable', G.STR, 'Proces wykonywalny (isExecutable)', file, label(p));
     });
     const participants = byLocal('participant');
-    participants.forEach(p => add(res, 'str.pool', G.STR, 'Pula (participant) w kolaboracji', file, label(p)));
+    participants.forEach(p => add(res, 'str.pool', G.STR, 'Basen (pool) w kolaboracji', file, label(p)));
     byLocal('collaboration').forEach(c => {
       if (kids(c).filter(e => e.localName === 'participant').length >= 2)
-        add(res, 'str.multiPool', G.STR, 'Kilka pul w jednej kolaboracji', file, label(c));
+        add(res, 'str.multiPool', G.STR, 'Kilka basenów w jednej kolaboracji', file, label(c));
     });
     byLocal('laneSet').forEach(ls => {
       const lanes = kids(ls).filter(e => e.localName === 'lane');
       if (lanes.length >= 2) add(res, 'str.lanes', G.STR, 'Tory (lanes) — podział odpowiedzialności', file, lanes.map(l => l.getAttribute('name') || l.getAttribute('id')).join(', '));
     });
     byLocal('childLaneSet').forEach(ls => add(res, 'str.nestedLanes', G.STR, 'Zagnieżdżone tory', file, label(ls.parentNode)));
-    byLocal('messageFlow').forEach(mf => add(res, 'comm.messageFlow', G.COMM, 'Przepływ komunikatów (message flow) między pulami', file, label(mf)));
+    byLocal('messageFlow').forEach(mf => add(res, 'comm.messageFlow', G.COMM, 'Przepływ komunikatów (message flow) między basenami', file, label(mf)));
 
     // --- artefakty
     const ART = { textAnnotation: 'Adnotacja tekstowa', dataObjectReference: 'Obiekt danych', dataStoreReference: 'Magazyn danych', group: 'Grupa (artefakt)' };
